@@ -60,7 +60,7 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 - [x] Create `AGENTS.md`.
 - [x] Create this `PLAN.md`.
 - [x] Remove copied Git Skill practice plan.
-- [ ] Create first planning commit.
+- [x] Create first planning commit.
 
 ### Milestone 1: Requirements and Architecture
 
