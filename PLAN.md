@@ -37,22 +37,54 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 
 ## Decisions
 
+### Product
+
+- MVP includes registration, login, logout, credential CRUD, platform search, and credential detail with sensitive fields masked by default.
+- Draft data model starts with `User` and `Credential`.
+- Draft REST API starts with `/auth/*` and `/credentials/*`.
+- Draft frontend flow starts with auth pages and credential list/detail/edit pages.
+
+### Architecture
+
+- Use SQLite for local learning and version 1.
+- Consider PostgreSQL later only if deployment becomes a real goal.
+- Use a separated frontend/backend architecture.
+- Use `apps/web` for the Vue frontend.
+- Use `apps/api` for the Bun backend.
+- Use REST APIs with JSON between frontend and backend.
+- Use session-based authentication with HTTP cookies for version 1.
+
+### Security
+
+- Version 1 uses a trusted-backend security model.
+- Do not describe version 1 as zero-knowledge or end-to-end encrypted.
+- The backend may handle plaintext during request processing.
+- The backend holds the ability to decrypt stored credential data.
+- Build database CRUD and authentication before hardening stored sensitive data.
+- Harden the database after the core data flow works.
+- Do not store sensitive credential fields as plaintext.
+- Keep credential platform names plaintext in version 1 to make search simpler.
+- Encrypt stored credential username, password, and notes.
+- Do not store user email as plaintext.
+- Store user email with `emailHash` for lookup and `emailEncrypted` for display.
+- Use a keyed hash / blind index for searchable sensitive values.
+- Store login passwords with password hashing, not encryption.
+- Use precise field suffixes such as `Hash` and `Encrypted` instead of vague names like `Secured`.
+- Do not use real account passwords in tests or examples.
+- Do not log passwords, encryption keys, tokens, or decrypted credential values.
+
+### Workflow
+
 - Initialize Git before creating project files.
 - Keep project documentation lightweight at first.
 - Use `PLAN.md` as the main planning document.
 - Do not create separate docs files until the content grows enough to justify them.
 - Keep the copied `git-workflow-assistant` Skill.
 - Remove the copied Git Skill practice plan from `.codex/skill-plans`.
-- Use backend encryption for version 1.
-- Use a trusted-backend model for version 1.
-- Do not describe version 1 as zero-knowledge or end-to-end encrypted.
-- Do not use real account passwords in tests or examples.
-- Keep platform name plaintext in version 1 to make search simpler.
-- Encrypt stored credential username, password, and notes.
 - Use English for code, branch names, commit messages, file names, and API names.
 - Use Traditional Chinese for explanations and learning notes.
 
-## Tasks
+## Milestones
 
 ### Milestone 0: Repository Setup
 
@@ -64,13 +96,13 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 
 ### Milestone 1: Requirements and Architecture
 
-- [ ] Confirm MVP requirements.
-- [ ] Decide database.
-- [ ] Decide project structure.
-- [ ] Draft basic data model.
-- [ ] Draft REST API endpoints.
-- [ ] Draft frontend pages and user flow.
-- [ ] Record security boundaries.
+- [x] Confirm MVP requirements.
+- [x] Decide database.
+- [x] Decide project structure.
+- [x] Draft basic data model.
+- [x] Draft REST API endpoints.
+- [x] Draft frontend pages and user flow.
+- [x] Record security boundaries.
 
 ### Milestone 2: Learning Foundations
 
@@ -113,10 +145,12 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 - [ ] Add authorization.
 - [ ] Add user ownership checks.
 
-### Milestone 6: Backend Encryption
+### Milestone 6: Database Hardening and Backend Encryption
 
 - [ ] Choose a mature authenticated encryption package.
 - [ ] Create crypto service.
+- [ ] Add `emailHash` for user lookup.
+- [ ] Add `emailEncrypted` for user display.
 - [ ] Encrypt sensitive fields.
 - [ ] Decrypt sensitive fields.
 - [ ] Manage nonce correctly.
