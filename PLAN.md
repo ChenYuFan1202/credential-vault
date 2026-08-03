@@ -106,9 +106,9 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 
 ### Milestone 2: Learning Foundations
 
-- [ ] Learn TypeScript types and interfaces.
-- [ ] Learn TypeScript functions and modules.
-- [ ] Learn TypeScript async/await.
+- [x] Learn TypeScript types and interfaces.
+- [x] Learn TypeScript functions and modules.
+- [x] Learn TypeScript async/await.
 - [ ] Learn Bun project basics.
 - [ ] Learn Bun routing and request handling.
 - [ ] Learn Bun environment variables.
