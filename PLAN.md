@@ -109,9 +109,9 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 - [x] Learn TypeScript types and interfaces.
 - [x] Learn TypeScript functions and modules.
 - [x] Learn TypeScript async/await.
-- [ ] Learn Bun project basics.
-- [ ] Learn Bun routing and request handling.
-- [ ] Learn Bun environment variables.
+- [x] Learn Bun project basics.
+- [x] Learn Bun routing and request handling.
+- [x] Learn Bun environment variables.
 - [ ] Learn Vue components.
 - [ ] Learn Vue props and emits.
 - [ ] Learn Vue reactive state and computed values.

@@ -1,0 +1,17 @@
+{
+  "name": "bun-api",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "start": "bun run index.ts",
+    "check-and-start": "bun run typecheck && bun run start"
+  }
+}
