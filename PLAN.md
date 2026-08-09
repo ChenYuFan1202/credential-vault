@@ -121,11 +121,11 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 
 ### Milestone 3: Minimal App Skeleton
 
-- [ ] Scaffold Vue frontend.
-- [ ] Scaffold Bun backend.
-- [ ] Add health check API.
-- [ ] Call health check from frontend.
-- [ ] Add basic responsive layout.
+- [x] Scaffold Vue frontend.
+- [x] Scaffold Bun backend.
+- [x] Add health check API.
+- [x] Call health check from frontend.
+- [x] Add basic responsive layout.
 
 ### Milestone 4: Credential CRUD Without Encryption
 
