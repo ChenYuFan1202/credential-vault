@@ -1,14 +1,16 @@
+import { handleCredentialRequest } from "./src/credentials/routes";
+
 const port = Number(Bun.env.PORT ?? 3000);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "http://localhost:5173",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
 const server = Bun.serve({
   port,
-  fetch(request) {
+  async fetch(request) {
     const url = new URL(request.url);
 
     if (request.method === "OPTIONS") {
@@ -28,6 +30,16 @@ const server = Bun.serve({
           headers: corsHeaders,
         },
       );
+    }
+
+    const credentialResponse = await handleCredentialRequest(
+      request,
+      url,
+      corsHeaders,
+    );
+
+    if (credentialResponse !== null) {
+      return credentialResponse;
     }
 
     return Response.json(

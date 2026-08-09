@@ -6,7 +6,10 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "start": "bun run index.ts",
-    "check-and-start": "bun run typecheck && bun run start"
+    "check-and-start": "bun run typecheck && bun run start",
+    "db:migrate": "bun run src/db/migrate.ts",
+    "db:delete": "bun run src/db/delete.ts",
+    "db:seed": "bun run src/db/seed.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
