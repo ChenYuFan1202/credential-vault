@@ -9,7 +9,8 @@
     "check-and-start": "bun run typecheck && bun run start",
     "db:migrate": "bun run src/db/migrate.ts",
     "db:delete": "bun run src/db/delete.ts",
-    "db:seed": "bun run src/db/seed.ts"
+    "db:seed": "bun run src/db/seed.ts",
+    "test": "DATABASE_URL=credential-vault.test.sqlite bun test"
   },
   "devDependencies": {
     "@types/bun": "latest",
