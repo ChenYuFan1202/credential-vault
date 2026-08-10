@@ -10,7 +10,7 @@
     "db:migrate": "bun run src/db/migrate.ts",
     "db:delete": "bun run src/db/delete.ts",
     "db:seed": "bun run src/db/seed.ts",
-    "test": "DATABASE_URL=credential-vault.test.sqlite bun test"
+    "test": "DATABASE_URL=credential-vault.test.sqlite bun run db:migrate && DATABASE_URL=credential-vault.test.sqlite bun test"
   },
   "devDependencies": {
     "@types/bun": "latest",
