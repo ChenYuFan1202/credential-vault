@@ -129,11 +129,11 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 
 ### Milestone 4: Credential CRUD Without Encryption
 
-- [ ] Use fake/test credentials only.
-- [ ] Build credential model.
-- [ ] Build CRUD API.
-- [ ] Build CRUD frontend pages.
-- [ ] Add validation and error handling.
+- [x] Use fake/test credentials only.
+- [x] Build credential model.
+- [x] Build CRUD API.
+- [x] Build CRUD frontend pages.
+- [x] Add validation and error handling.
 
 ### Milestone 5: Authentication
 
@@ -167,6 +167,7 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 - [ ] Add loading states.
 - [ ] Add error states.
 - [ ] Add confirmation dialog.
+- [ ] Add manual credential export for user-owned backup.
 - [ ] Confirm sensitive data is not logged.
 - [ ] Confirm API responses do not expose unnecessary data.
 - [ ] Confirm `.env` is ignored.

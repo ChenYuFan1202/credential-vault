@@ -31,9 +31,44 @@ button:hover {
   border-color: #6b7a90;
 }
 
+button.danger-button {
+  color: #b42318;
+  border-color: #f2b8b5;
+}
+
+button.danger-button:hover {
+  border-color: #b42318;
+}
+
 button:focus-visible {
   outline: 3px solid #b9d6ff;
   outline-offset: 2px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 1px solid #c8d0dd;
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: #172033;
+  background: #ffffff;
+  font: inherit;
+}
+
+input:focus,
+textarea:focus {
+  outline: 3px solid #b9d6ff;
+  outline-offset: 2px;
+}
+
+textarea {
+  resize: vertical;
 }
 
 #app {
@@ -86,6 +121,24 @@ p {
   background: #ffffff;
 }
 
+.credential-panel {
+  display: grid;
+  gap: 18px;
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #dce2ea;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.section-heading,
+.credential-item-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 16px;
+}
+
 .status-panel dl {
   display: grid;
   gap: 12px;
@@ -111,6 +164,92 @@ p {
   color: #b42318;
 }
 
+.credential-form {
+  display: grid;
+  gap: 14px;
+}
+
+.credential-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.credential-form label span {
+  color: #4b647f;
+  font-weight: 700;
+}
+
+.credential-form button {
+  justify-self: start;
+}
+
+.empty-message {
+  color: #4b647f;
+}
+
+.credential-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.credential-list li {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.credential-summary {
+  min-width: 0;
+}
+
+.credential-summary p {
+  color: #4b647f;
+}
+
+.credential-actions {
+  display: flex;
+  justify-content: end;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.credential-detail {
+  display: grid;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.credential-detail dl {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.credential-detail dl > div {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 12px;
+}
+
+.credential-detail dt {
+  color: #4b647f;
+  font-weight: 700;
+}
+
+.credential-detail dd {
+  margin: 0;
+}
+
+.credential-list strong {
+  display: block;
+}
+
 @media (max-width: 640px) {
   main {
     width: min(100% - 24px, 880px);
@@ -118,6 +257,20 @@ p {
   }
 
   .status-panel dl > div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .section-heading,
+  .credential-item-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .credential-actions {
+    justify-content: start;
+  }
+
+  .credential-detail dl > div {
     grid-template-columns: 1fr;
     gap: 4px;
   }
