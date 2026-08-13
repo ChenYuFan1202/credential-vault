@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
+import CredentialCreateForm from "./components/CredentialCreateForm.vue";
+import CredentialList from "./components/CredentialList.vue";
 
 type HealthResponse = {
   status: string;
@@ -59,22 +61,8 @@ const editCredential = ref<EditCredentialForm>({
 });
 const isUpdatingCredential = ref(false);
 const updateCredentialErrorMessage = ref("");
-const newCredential = ref<CreateCredentialForm>({
-  platform: "",
-  username: "",
-  password: "",
-  notes: "",
-});
 const isCreatingCredential = ref(false);
 const createCredentialErrorMessage = ref("");
-
-const canCreateCredential = computed(() => {
-  return (
-    newCredential.value.platform.trim() !== "" &&
-    newCredential.value.username.trim() !== "" &&
-    newCredential.value.password.length >= 8
-  );
-});
 
 const canUpdateCredential = computed(() => {
   return (
@@ -132,7 +120,10 @@ async function loadCredentials(): Promise<void> {
   }
 }
 
-async function createCredential(): Promise<void> {
+async function createCredential(
+  input: CreateCredentialForm,
+  onSuccess: () => void,
+): Promise<void> {
   isCreatingCredential.value = true;
   createCredentialErrorMessage.value = "";
 
@@ -143,10 +134,10 @@ async function createCredential(): Promise<void> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        platform: newCredential.value.platform,
-        username: newCredential.value.username,
-        password: newCredential.value.password,
-        notes: newCredential.value.notes || undefined,
+        platform: input.platform,
+        username: input.username,
+        password: input.password,
+        notes: input.notes || undefined,
       }),
     });
 
@@ -154,13 +145,7 @@ async function createCredential(): Promise<void> {
       throw new Error(`Create credential failed with status ${response.status}`);
     }
 
-    newCredential.value = {
-      platform: "",
-      username: "",
-      password: "",
-      notes: "",
-    };
-
+    onSuccess();
     await loadCredentials();
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -258,6 +243,16 @@ function cancelEditingCredential(): void {
   updateCredentialErrorMessage.value = "";
 }
 
+function updateEditCredentialField(
+  field: keyof EditCredentialForm,
+  value: string,
+): void {
+  editCredential.value = {
+    ...editCredential.value,
+    [field]: value,
+  };
+}
+
 async function updateCredential(): Promise<void> {
   const credentialId = selectedCredentialId.value;
 
@@ -344,202 +339,35 @@ onMounted(() => {
       </button>
     </section>
 
-    <section class="credential-panel">
-      <div>
-        <p class="eyebrow">New Credential</p>
-        <h2>Add Credential</h2>
-      </div>
+    <CredentialCreateForm
+      :is-creating="isCreatingCredential"
+      :error-message="createCredentialErrorMessage"
+      @create="createCredential"
+    />
 
-      <form class="credential-form" @submit.prevent="createCredential">
-        <label>
-          <span>Platform</span>
-          <input v-model="newCredential.platform" type="text" autocomplete="off" />
-        </label>
-
-        <label>
-          <span>Username</span>
-          <input v-model="newCredential.username" type="text" autocomplete="off" />
-        </label>
-
-        <label>
-          <span>Password</span>
-          <input
-            v-model="newCredential.password"
-            type="password"
-            autocomplete="new-password"
-          />
-        </label>
-
-        <label>
-          <span>Notes</span>
-          <textarea v-model="newCredential.notes" rows="3" />
-        </label>
-
-        <p v-if="createCredentialErrorMessage" class="error">
-          {{ createCredentialErrorMessage }}
-        </p>
-
-        <button
-          type="submit"
-          :disabled="!canCreateCredential || isCreatingCredential"
-        >
-          {{ isCreatingCredential ? "Adding..." : "Add Credential" }}
-        </button>
-      </form>
-    </section>
-
-    <section class="credential-panel" aria-live="polite">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Credentials</p>
-          <h2>Stored Credentials</h2>
-        </div>
-
-        <button type="button" @click="loadCredentials">
-          Refresh
-        </button>
-      </div>
-
-      <p v-if="isCredentialLoading">Loading credentials...</p>
-
-      <p v-else-if="credentialErrorMessage" class="error">
-        {{ credentialErrorMessage }}
-      </p>
-
-      <p v-else-if="credentials.length === 0" class="empty-message">
-        No credentials yet.
-      </p>
-
-      <template v-else>
-        <p v-if="deleteCredentialErrorMessage" class="error">
-          {{ deleteCredentialErrorMessage }}
-        </p>
-
-        <ul class="credential-list">
-          <li v-for="credential in credentials" :key="credential.id">
-            <div class="credential-item-heading">
-              <div class="credential-summary">
-                <strong>{{ credential.platform }}</strong>
-
-                <p v-if="credential.notes">
-                  {{ credential.notes }}
-                </p>
-              </div>
-
-              <div class="credential-actions">
-                <button
-                  v-if="selectedCredentialId !== credential.id"
-                  type="button"
-                  @click="loadCredentialDetail(credential.id)"
-                >
-                  View
-                </button>
-
-                <button
-                  type="button"
-                  class="danger-button"
-                  :disabled="deletingCredentialId === credential.id"
-                  @click="deleteCredential(credential.id)"
-                >
-                  {{ deletingCredentialId === credential.id ? "Deleting..." : "Delete" }}
-                </button>
-              </div>
-            </div>
-
-            <div
-              v-if="selectedCredentialId === credential.id"
-              class="credential-detail"
-            >
-              <p v-if="isLoadingSelectedCredential">Loading detail...</p>
-
-              <p v-else-if="selectedCredentialErrorMessage" class="error">
-                {{ selectedCredentialErrorMessage }}
-              </p>
-
-              <template v-else-if="selectedCredential">
-                <form
-                  v-if="isEditingCredential"
-                  class="credential-form"
-                  @submit.prevent="updateCredential"
-                >
-                  <label>
-                    <span>Platform</span>
-                    <input
-                      v-model="editCredential.platform"
-                      type="text"
-                      autocomplete="off"
-                    />
-                  </label>
-
-                  <label>
-                    <span>Username</span>
-                    <input
-                      v-model="editCredential.username"
-                      type="text"
-                      autocomplete="off"
-                    />
-                  </label>
-
-                  <label>
-                    <span>Password</span>
-                    <input
-                      v-model="editCredential.password"
-                      type="password"
-                      autocomplete="new-password"
-                    />
-                  </label>
-
-                  <label>
-                    <span>Notes</span>
-                    <textarea v-model="editCredential.notes" rows="3" />
-                  </label>
-
-                  <p v-if="updateCredentialErrorMessage" class="error">
-                    {{ updateCredentialErrorMessage }}
-                  </p>
-
-                  <div class="credential-actions">
-                    <button
-                      type="submit"
-                      :disabled="!canUpdateCredential || isUpdatingCredential"
-                    >
-                      {{ isUpdatingCredential ? "Saving..." : "Save" }}
-                    </button>
-
-                    <button type="button" @click="cancelEditingCredential">
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-
-                <template v-else>
-                  <dl>
-                    <div>
-                      <dt>Username</dt>
-                      <dd>{{ selectedCredential.username }}</dd>
-                    </div>
-
-                    <div>
-                      <dt>Password</dt>
-                      <dd>{{ selectedCredential.password }}</dd>
-                    </div>
-                  </dl>
-
-                  <div class="credential-actions">
-                    <button type="button" @click="startEditingCredential">
-                      Edit
-                    </button>
-
-                    <button type="button" @click="closeCredentialDetail">
-                      Close
-                    </button>
-                  </div>
-                </template>
-              </template>
-            </div>
-          </li>
-        </ul>
-      </template>
-    </section>
+    <CredentialList
+      :credentials="credentials"
+      :is-loading="isCredentialLoading"
+      :error-message="credentialErrorMessage"
+      :deleting-credential-id="deletingCredentialId"
+      :delete-error-message="deleteCredentialErrorMessage"
+      :selected-credential-id="selectedCredentialId"
+      :selected-credential="selectedCredential"
+      :is-loading-selected-credential="isLoadingSelectedCredential"
+      :selected-credential-error-message="selectedCredentialErrorMessage"
+      :is-editing-credential="isEditingCredential"
+      :edit-credential="editCredential"
+      :can-update-credential="canUpdateCredential"
+      :is-updating-credential="isUpdatingCredential"
+      :update-credential-error-message="updateCredentialErrorMessage"
+      @refresh="loadCredentials"
+      @view="loadCredentialDetail"
+      @delete="deleteCredential"
+      @start-edit="startEditingCredential"
+      @cancel-edit="cancelEditingCredential"
+      @update="updateCredential"
+      @close-detail="closeCredentialDetail"
+      @update-edit-field="updateEditCredentialField"
+    />
   </main>
 </template>
