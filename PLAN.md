@@ -53,10 +53,14 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 - Use `apps/api` for the Bun backend.
 - Use REST APIs with JSON between frontend and backend.
 - Use session-based authentication with HTTP cookies for version 1.
+- Use SQLite-backed sessions for auth version 1.
+- Do not use Redis for auth version 1.
 
 ### Security
 
 - Version 1 uses a trusted-backend security model.
+- Treat version 1 as a learning/demo application, even if deployed for personal testing.
+- Do not invite public users or real credential usage for version 1.
 - Do not describe version 1 as zero-knowledge or end-to-end encrypted.
 - The backend may handle plaintext during request processing.
 - The backend holds the ability to decrypt stored credential data.
@@ -65,6 +69,17 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 - Do not store sensitive credential fields as plaintext.
 - Keep credential platform names plaintext in version 1 to make search simpler.
 - Encrypt stored credential username, password, and notes.
+- Use username/password registration for auth version 1.
+- Do not use email for auth version 1.
+- Do not add email verification or password recovery for auth version 1.
+- Do not add admin/user roles for auth version 1.
+- Use ownership-based authorization for credentials.
+- Use Argon2id for login password hashing.
+- Store a random session token in the browser cookie.
+- Store only `sessionTokenHash`, not the raw session token, in the database.
+- Check `expiresAt` on each authenticated request.
+- Delete an expired session when it is encountered.
+- Logout deletes the current session.
 - Do not store user email as plaintext.
 - Store user email with `emailHash` for lookup and `emailEncrypted` for display.
 - Use a keyed hash / blind index for searchable sensitive values.
@@ -137,13 +152,19 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 
 ### Milestone 5: Authentication
 
-- [ ] Add registration.
+- [ ] Add users table.
+- [ ] Add sessions table.
+- [ ] Add `userId` to credentials.
+- [ ] Delete existing fake credentials before applying user ownership migration.
+- [ ] Add username/password registration.
 - [ ] Add login.
 - [ ] Add logout.
-- [ ] Add password hashing.
-- [ ] Choose session or token handling.
-- [ ] Add authorization.
-- [ ] Add user ownership checks.
+- [ ] Add Argon2id password hashing.
+- [ ] Add cookie-based session handling.
+- [ ] Store session token hashes in SQLite.
+- [ ] Check session expiration on authenticated requests.
+- [ ] Add ownership checks to credential APIs.
+- [ ] Add frontend auth pages and state.
 
 ### Milestone 6: Database Hardening and Backend Encryption
 
