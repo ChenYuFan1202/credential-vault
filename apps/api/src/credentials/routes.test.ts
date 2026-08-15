@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { db } from "../db/client";
-import { credentials } from "../db/schema";
+import { credentials, users } from "../db/schema";
+import { createUser } from "../users/service";
 import { createCredential } from "./service";
 import { handleCredentialRequest } from "./routes";
 
@@ -28,8 +29,16 @@ const headers = {
   "Access-Control-Allow-Origin": "http://localhost:5173",
 };
 
+const demoUserId = "demo-user-id";
+
 beforeEach(() => {
   db.delete(credentials).run();
+  db.delete(users).run();
+  createUser({
+    id: demoUserId,
+    username: "demo-user",
+    passwordHash: "fake-argon2id-hash-for-route-test",
+  });
 });
 
 function createJsonRequest(pathname: string, method: string, body: unknown) {
@@ -64,7 +73,7 @@ describe("credential routes", () => {
   });
 
   test("handles GET /credentials", async () => {
-    createCredential({
+    createCredential(demoUserId, {
       platform: "GitHub",
       username: "demo-user",
       password: "fake-password-123",
@@ -123,7 +132,7 @@ describe("credential routes", () => {
   });
 
   test("handles GET /credentials/:id", async () => {
-    const credential = createCredential({
+    const credential = createCredential(demoUserId, {
       platform: "GitHub",
       username: "demo-user",
       password: "fake-password-123",
@@ -143,7 +152,7 @@ describe("credential routes", () => {
   });
 
   test("handles PATCH /credentials/:id", async () => {
-    const credential = createCredential({
+    const credential = createCredential(demoUserId, {
       platform: "GitHub",
       username: "demo-user",
       password: "fake-password-123",
@@ -163,7 +172,7 @@ describe("credential routes", () => {
   });
 
   test("handles DELETE /credentials/:id", async () => {
-    const credential = createCredential({
+    const credential = createCredential(demoUserId, {
       platform: "GitHub",
       username: "demo-user",
       password: "fake-password-123",

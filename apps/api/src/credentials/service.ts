@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../db/client";
 import { credentials } from "../db/schema";
 import type {
@@ -6,17 +6,22 @@ import type {
   UpdateCredentialInput,
 } from "./validation";
 
-export function listCredentials() {
-  return db.select().from(credentials).all();
+export function listCredentials(userId: string) {
+  return db
+    .select()
+    .from(credentials)
+    .where(eq(credentials.userId, userId))
+    .all();
 }
 
-export function createCredential(input: CreateCredentialInput) {
+export function createCredential(userId: string, input: CreateCredentialInput) {
   const now = new Date().toISOString();
 
   return db
     .insert(credentials)
     .values({
       id: crypto.randomUUID(),
+      userId,
       platform: input.platform.trim(),
       username: input.username.trim(),
       password: input.password,
@@ -28,15 +33,19 @@ export function createCredential(input: CreateCredentialInput) {
     .get();
 }
 
-export function getCredentialById(id: string) {
+export function getCredentialById(userId: string, id: string) {
   return db
     .select()
     .from(credentials)
-    .where(eq(credentials.id, id))
+    .where(and(eq(credentials.id, id), eq(credentials.userId, userId)))
     .get();
 }
 
-export function updateCredential(id: string, input: UpdateCredentialInput) {
+export function updateCredential(
+  userId: string,
+  id: string,
+  input: UpdateCredentialInput,
+) {
   const values: Partial<typeof credentials.$inferInsert> = {
     updatedAt: new Date().toISOString(),
   };
@@ -60,15 +69,15 @@ export function updateCredential(id: string, input: UpdateCredentialInput) {
   return db
     .update(credentials)
     .set(values)
-    .where(eq(credentials.id, id))
+    .where(and(eq(credentials.id, id), eq(credentials.userId, userId)))
     .returning()
     .get();
 }
 
-export function deleteCredential(id: string): boolean {
+export function deleteCredential(userId: string, id: string): boolean {
   const deletedCredential = db
     .delete(credentials)
-    .where(eq(credentials.id, id))
+    .where(and(eq(credentials.id, id), eq(credentials.userId, userId)))
     .returning()
     .get();
 

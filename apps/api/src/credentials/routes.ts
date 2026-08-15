@@ -12,6 +12,8 @@ import {
 
 type ResponseHeaders = Record<string, string>;
 
+const demoUserId = "demo-user-id";
+
 function getCredentialIdFromPath(pathname: string): string | null {
   const prefix = "/credentials/";
 
@@ -54,7 +56,7 @@ export async function handleCredentialRequest(
   headers: ResponseHeaders,
 ): Promise<Response | null> {
   if (url.pathname === "/credentials" && request.method === "GET") {
-    const rows = listCredentials();
+    const rows = listCredentials(demoUserId);
 
     return Response.json(
       {
@@ -81,7 +83,7 @@ export async function handleCredentialRequest(
       );
     }
 
-    const credential = createCredential(body);
+    const credential = createCredential(demoUserId, body);
 
     return Response.json(
       {
@@ -101,7 +103,7 @@ export async function handleCredentialRequest(
       return credentialIdRequiredResponse(headers);
     }
 
-    const credential = getCredentialById(id);
+    const credential = getCredentialById(demoUserId, id);
 
     if (credential === undefined) {
       return credentialNotFoundResponse(headers);
@@ -138,7 +140,7 @@ export async function handleCredentialRequest(
       );
     }
 
-    const credential = updateCredential(id, body);
+    const credential = updateCredential(demoUserId, id, body);
 
     if (credential === undefined) {
       return credentialNotFoundResponse(headers);
@@ -161,7 +163,7 @@ export async function handleCredentialRequest(
       return credentialIdRequiredResponse(headers);
     }
 
-    const deleted = deleteCredential(id);
+    const deleted = deleteCredential(demoUserId, id);
 
     if (!deleted) {
       return credentialNotFoundResponse(headers);
