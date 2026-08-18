@@ -159,7 +159,7 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 - [ ] Add username/password registration.
 - [ ] Add login.
 - [ ] Add logout.
-- [ ] Add Argon2id password hashing.
+- [x] Add Argon2id password hashing.
 - [ ] Add cookie-based session handling.
 - [ ] Store session token hashes in SQLite.
 - [ ] Check session expiration on authenticated requests.
