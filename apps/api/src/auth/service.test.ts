@@ -3,7 +3,7 @@ import { db } from "../db/client";
 import { users } from "../db/schema";
 import { getUserByUsername } from "../users/service";
 import { verifyPassword } from "./password";
-import { registerUser } from "./service";
+import { loginUser, registerUser } from "./service";
 
 beforeEach(() => {
   db.delete(users).run();
@@ -79,5 +79,98 @@ describe("auth service", () => {
     }
 
     expect(result.user.username).toBe("demo-user");
+  });
+
+  test("logs in with correct username and password", async () => {
+    await registerUser({
+      username: "demo-user",
+      password: "fake-password-123",
+    });
+
+    const result = await loginUser({
+      username: "demo-user",
+      password: "fake-password-123",
+    });
+
+    expect(result.success).toBe(true);
+
+    if (!result.success) {
+      throw new Error("Expected login to succeed.");
+    }
+
+    expect(result.user.username).toBe("demo-user");
+  });
+
+  test("rejects an unknown username", async () => {
+    const result = await loginUser({
+      username: "missing-user",
+      password: "fake-password-123",
+    });
+
+    expect(result.success).toBe(false);
+
+    if (result.success) {
+      throw new Error("Expected login to fail.");
+    }
+
+    expect(result.message).toBe("Invalid username or password.");
+  });
+
+  test("rejects an incorrect password", async () => {
+    await registerUser({
+      username: "demo-user",
+      password: "fake-password-123",
+    });
+
+    const result = await loginUser({
+      username: "demo-user",
+      password: "wrong-password",
+    });
+
+    expect(result.success).toBe(false);
+
+    if (result.success) {
+      throw new Error("Expected login to fail.");
+    }
+
+    expect(result.message).toBe("Invalid username or password.");
+  });
+
+  test("trims login usernames", async () => {
+    await registerUser({
+      username: "demo-user",
+      password: "fake-password-123",
+    });
+
+    const result = await loginUser({
+      username: "  demo-user  ",
+      password: "fake-password-123",
+    });
+
+    expect(result.success).toBe(true);
+
+    if (!result.success) {
+      throw new Error("Expected login to succeed.");
+    }
+
+    expect(result.user.username).toBe("demo-user");
+  });
+
+  test("does not return password hash when login succeeds", async () => {
+    await registerUser({
+      username: "demo-user",
+      password: "fake-password-123",
+    });
+
+    const result = await loginUser({
+      username: "demo-user",
+      password: "fake-password-123",
+    });
+
+    if (!result.success) {
+      throw new Error("Expected login to succeed.");
+    }
+
+    expect("passwordHash" in result.user).toBe(false);
   });
 });
