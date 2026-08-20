@@ -1,11 +1,28 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
+import AuthForm from "./components/AuthForm.vue";
 import CredentialCreateForm from "./components/CredentialCreateForm.vue";
 import CredentialList from "./components/CredentialList.vue";
 
 type HealthResponse = {
   status: string;
   service: string;
+};
+
+type CurrentUser = {
+  id: string;
+  username: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type AuthResponse = {
+  data: CurrentUser;
+};
+
+type AuthFormInput = {
+  username: string;
+  password: string;
 };
 
 type Credential = {
@@ -43,6 +60,10 @@ type EditCredentialForm = {
 const apiStatus = ref<HealthResponse | null>(null);
 const isLoading = ref(true);
 const errorMessage = ref("");
+const currentUser = ref<CurrentUser | null>(null);
+const isAuthLoading = ref(true);
+const authErrorMessage = ref("");
+const isSubmittingAuth = ref(false);
 const credentials = ref<Credential[]>([]);
 const isCredentialLoading = ref(true);
 const credentialErrorMessage = ref("");
@@ -95,12 +116,50 @@ async function loadHealthStatus(): Promise<void> {
   }
 }
 
+async function loadCurrentUser(): Promise<void> {
+  isAuthLoading.value = true;
+  authErrorMessage.value = "";
+
+  try {
+    const response = await fetch("http://localhost:3000/auth/me", {
+      credentials: "include",
+    });
+
+    if (response.status === 401) {
+      currentUser.value = null;
+      credentials.value = [];
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Current user request failed with status ${response.status}`);
+    }
+
+    const body = (await response.json()) as AuthResponse;
+
+    currentUser.value = body.data;
+    await loadCredentials();
+  } catch (error: unknown) {
+    currentUser.value = null;
+
+    if (error instanceof Error) {
+      authErrorMessage.value = error.message;
+    } else {
+      authErrorMessage.value = "An unknown error occurred.";
+    }
+  } finally {
+    isAuthLoading.value = false;
+  }
+}
+
 async function loadCredentials(): Promise<void> {
   isCredentialLoading.value = true;
   credentialErrorMessage.value = "";
 
   try {
-    const response = await fetch("http://localhost:3000/credentials");
+    const response = await fetch("http://localhost:3000/credentials", {
+      credentials: "include",
+    });
 
     if (!response.ok) {
       throw new Error(`Credential request failed with status ${response.status}`);
@@ -120,6 +179,80 @@ async function loadCredentials(): Promise<void> {
   }
 }
 
+async function login(input: AuthFormInput): Promise<void> {
+  isSubmittingAuth.value = true;
+  authErrorMessage.value = "";
+
+  try {
+    const response = await fetch("http://localhost:3000/auth/login", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Login failed with status ${response.status}`);
+    }
+
+    const body = (await response.json()) as AuthResponse;
+
+    currentUser.value = body.data;
+    await loadCredentials();
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      authErrorMessage.value = error.message;
+    } else {
+      authErrorMessage.value = "An unknown error occurred.";
+    }
+  } finally {
+    isSubmittingAuth.value = false;
+  }
+}
+
+async function register(input: AuthFormInput): Promise<void> {
+  isSubmittingAuth.value = true;
+  authErrorMessage.value = "";
+
+  try {
+    const response = await fetch("http://localhost:3000/auth/register", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Registration failed with status ${response.status}`);
+    }
+
+    await login(input);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      authErrorMessage.value = error.message;
+    } else {
+      authErrorMessage.value = "An unknown error occurred.";
+    }
+  } finally {
+    isSubmittingAuth.value = false;
+  }
+}
+
+async function logout(): Promise<void> {
+  await fetch("http://localhost:3000/auth/logout", {
+    method: "POST",
+    credentials: "include",
+  });
+
+  currentUser.value = null;
+  credentials.value = [];
+  closeCredentialDetail();
+}
+
 async function createCredential(
   input: CreateCredentialForm,
   onSuccess: () => void,
@@ -130,6 +263,7 @@ async function createCredential(
   try {
     const response = await fetch("http://localhost:3000/credentials", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -165,6 +299,7 @@ async function deleteCredential(id: string): Promise<void> {
   try {
     const response = await fetch(`http://localhost:3000/credentials/${id}`, {
       method: "DELETE",
+      credentials: "include",
     });
 
     if (!response.ok) {
@@ -192,7 +327,9 @@ async function loadCredentialDetail(id: string): Promise<void> {
   isLoadingSelectedCredential.value = true;
 
   try {
-    const response = await fetch(`http://localhost:3000/credentials/${id}`);
+    const response = await fetch(`http://localhost:3000/credentials/${id}`, {
+      credentials: "include",
+    });
 
     if (!response.ok) {
       throw new Error(
@@ -268,6 +405,7 @@ async function updateCredential(): Promise<void> {
       `http://localhost:3000/credentials/${credentialId}`,
       {
         method: "PATCH",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -300,7 +438,7 @@ async function updateCredential(): Promise<void> {
 
 onMounted(() => {
   void loadHealthStatus();
-  void loadCredentials();
+  void loadCurrentUser();
 });
 </script>
 
@@ -339,35 +477,60 @@ onMounted(() => {
       </button>
     </section>
 
-    <CredentialCreateForm
-      :is-creating="isCreatingCredential"
-      :error-message="createCredentialErrorMessage"
-      @create="createCredential"
+    <p v-if="isAuthLoading">Checking account...</p>
+
+    <AuthForm
+      v-else-if="currentUser === null"
+      :is-submitting="isSubmittingAuth"
+      :error-message="authErrorMessage"
+      @login="login"
+      @register="register"
     />
 
-    <CredentialList
-      :credentials="credentials"
-      :is-loading="isCredentialLoading"
-      :error-message="credentialErrorMessage"
-      :deleting-credential-id="deletingCredentialId"
-      :delete-error-message="deleteCredentialErrorMessage"
-      :selected-credential-id="selectedCredentialId"
-      :selected-credential="selectedCredential"
-      :is-loading-selected-credential="isLoadingSelectedCredential"
-      :selected-credential-error-message="selectedCredentialErrorMessage"
-      :is-editing-credential="isEditingCredential"
-      :edit-credential="editCredential"
-      :can-update-credential="canUpdateCredential"
-      :is-updating-credential="isUpdatingCredential"
-      :update-credential-error-message="updateCredentialErrorMessage"
-      @refresh="loadCredentials"
-      @view="loadCredentialDetail"
-      @delete="deleteCredential"
-      @start-edit="startEditingCredential"
-      @cancel-edit="cancelEditingCredential"
-      @update="updateCredential"
-      @close-detail="closeCredentialDetail"
-      @update-edit-field="updateEditCredentialField"
-    />
+    <template v-else>
+      <section class="credential-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Signed In</p>
+            <h2>{{ currentUser.username }}</h2>
+          </div>
+
+          <button type="button" @click="logout">
+            Logout
+          </button>
+        </div>
+      </section>
+
+      <CredentialCreateForm
+        :is-creating="isCreatingCredential"
+        :error-message="createCredentialErrorMessage"
+        @create="createCredential"
+      />
+
+      <CredentialList
+        :credentials="credentials"
+        :is-loading="isCredentialLoading"
+        :error-message="credentialErrorMessage"
+        :deleting-credential-id="deletingCredentialId"
+        :delete-error-message="deleteCredentialErrorMessage"
+        :selected-credential-id="selectedCredentialId"
+        :selected-credential="selectedCredential"
+        :is-loading-selected-credential="isLoadingSelectedCredential"
+        :selected-credential-error-message="selectedCredentialErrorMessage"
+        :is-editing-credential="isEditingCredential"
+        :edit-credential="editCredential"
+        :can-update-credential="canUpdateCredential"
+        :is-updating-credential="isUpdatingCredential"
+        :update-credential-error-message="updateCredentialErrorMessage"
+        @refresh="loadCredentials"
+        @view="loadCredentialDetail"
+        @delete="deleteCredential"
+        @start-edit="startEditingCredential"
+        @cancel-edit="cancelEditingCredential"
+        @update="updateCredential"
+        @close-detail="closeCredentialDetail"
+        @update-edit-field="updateEditCredentialField"
+      />
+    </template>
   </main>
 </template>

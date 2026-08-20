@@ -156,15 +156,15 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 - [x] Add sessions table.
 - [x] Add `userId` to credentials.
 - [x] Delete existing fake credentials before applying user ownership migration.
-- [ ] Add username/password registration.
-- [ ] Add login.
+- [x] Add username/password registration.
+- [x] Add login.
 - [x] Add logout.
 - [x] Add Argon2id password hashing.
 - [x] Add cookie-based session handling.
 - [x] Store session token hashes in SQLite.
 - [x] Check session expiration on authenticated requests.
 - [x] Add ownership checks to credential APIs.
-- [ ] Add frontend auth pages and state.
+- [x] Add frontend auth pages and state.
 
 ### Milestone 6: Database Hardening and Backend Encryption
 
@@ -188,6 +188,7 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 - [ ] Add loading states.
 - [ ] Add error states.
 - [ ] Add confirmation dialog.
+- [ ] Add password change flow.
 - [ ] Add manual credential export for user-owned backup.
 - [ ] Confirm sensitive data is not logged.
 - [ ] Confirm API responses do not expose unnecessary data.
