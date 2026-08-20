@@ -158,11 +158,11 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 - [x] Delete existing fake credentials before applying user ownership migration.
 - [ ] Add username/password registration.
 - [ ] Add login.
-- [ ] Add logout.
+- [x] Add logout.
 - [x] Add Argon2id password hashing.
-- [ ] Add cookie-based session handling.
-- [ ] Store session token hashes in SQLite.
-- [ ] Check session expiration on authenticated requests.
+- [x] Add cookie-based session handling.
+- [x] Store session token hashes in SQLite.
+- [x] Check session expiration on authenticated requests.
 - [x] Add ownership checks to credential APIs.
 - [ ] Add frontend auth pages and state.
 

@@ -1,3 +1,5 @@
+import { getSessionTokenFromCookieHeader } from "../auth/cookies";
+import { getUserBySessionToken } from "../auth/session";
 import {
   createCredential,
   deleteCredential,
@@ -12,7 +14,12 @@ import {
 
 type ResponseHeaders = Record<string, string>;
 
-const demoUserId = "demo-user-id";
+type CurrentUser = {
+  id: string;
+  username: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
 function getCredentialIdFromPath(pathname: string): string | null {
   const prefix = "/credentials/";
@@ -50,13 +57,47 @@ function credentialNotFoundResponse(headers: ResponseHeaders): Response {
   );
 }
 
+function getCurrentUser(request: Request): CurrentUser | null {
+  const sessionToken = getSessionTokenFromCookieHeader(
+    request.headers.get("Cookie"),
+  );
+
+  if (sessionToken === null) {
+    return null;
+  }
+
+  return getUserBySessionToken(sessionToken);
+}
+
+function unauthorizedResponse(headers: ResponseHeaders): Response {
+  return Response.json(
+    {
+      error: "Authentication is required.",
+    },
+    {
+      status: 401,
+      headers,
+    },
+  );
+}
+
 export async function handleCredentialRequest(
   request: Request,
   url: URL,
   headers: ResponseHeaders,
 ): Promise<Response | null> {
+  if (!url.pathname.startsWith("/credentials")) {
+    return null;
+  }
+
+  const currentUser = getCurrentUser(request);
+
+  if (currentUser === null) {
+    return unauthorizedResponse(headers);
+  }
+
   if (url.pathname === "/credentials" && request.method === "GET") {
-    const rows = listCredentials(demoUserId);
+    const rows = listCredentials(currentUser.id);
 
     return Response.json(
       {
@@ -83,7 +124,7 @@ export async function handleCredentialRequest(
       );
     }
 
-    const credential = createCredential(demoUserId, body);
+    const credential = createCredential(currentUser.id, body);
 
     return Response.json(
       {
@@ -103,7 +144,7 @@ export async function handleCredentialRequest(
       return credentialIdRequiredResponse(headers);
     }
 
-    const credential = getCredentialById(demoUserId, id);
+    const credential = getCredentialById(currentUser.id, id);
 
     if (credential === undefined) {
       return credentialNotFoundResponse(headers);
@@ -140,7 +181,7 @@ export async function handleCredentialRequest(
       );
     }
 
-    const credential = updateCredential(demoUserId, id, body);
+    const credential = updateCredential(currentUser.id, id, body);
 
     if (credential === undefined) {
       return credentialNotFoundResponse(headers);
@@ -163,7 +204,7 @@ export async function handleCredentialRequest(
       return credentialIdRequiredResponse(headers);
     }
 
-    const deleted = deleteCredential(demoUserId, id);
+    const deleted = deleteCredential(currentUser.id, id);
 
     if (!deleted) {
       return credentialNotFoundResponse(headers);

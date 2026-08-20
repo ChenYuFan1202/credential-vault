@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { db } from "../db/client";
 import { credentials, users } from "../db/schema";
+import { createSessionCookie } from "../auth/cookies";
+import { createSession } from "../auth/session";
 import { createUser } from "../users/service";
 import { createCredential } from "./service";
 import { handleCredentialRequest } from "./routes";
@@ -29,25 +31,49 @@ const headers = {
   "Access-Control-Allow-Origin": "http://localhost:5173",
 };
 
-const demoUserId = "demo-user-id";
+let testUserId = "";
+let otherUserId = "";
+let sessionCookie = "";
 
 beforeEach(() => {
   db.delete(credentials).run();
   db.delete(users).run();
-  createUser({
-    id: demoUserId,
+  const testUser = createUser({
     username: "demo-user",
     passwordHash: "fake-argon2id-hash-for-route-test",
   });
+  const otherUser = createUser({
+    username: "other-user",
+    passwordHash: "fake-argon2id-hash-for-other-route-test",
+  });
+  const session = createSession(testUser.id);
+
+  testUserId = testUser.id;
+  otherUserId = otherUser.id;
+  sessionCookie = createSessionCookie(session.sessionToken, session.expiresAt);
 });
 
-function createJsonRequest(pathname: string, method: string, body: unknown) {
+function createJsonRequest(
+  pathname: string,
+  method: string,
+  body: unknown,
+  cookie = sessionCookie,
+) {
   return new Request(`http://localhost:3000${pathname}`, {
     method,
     headers: {
       "Content-Type": "application/json",
+      Cookie: cookie,
     },
     body: JSON.stringify(body),
+  });
+}
+
+function createCredentialRequest(pathname: string, cookie = sessionCookie) {
+  return new Request(`http://localhost:3000${pathname}`, {
+    headers: {
+      Cookie: cookie,
+    },
   });
 }
 
@@ -73,13 +99,13 @@ describe("credential routes", () => {
   });
 
   test("handles GET /credentials", async () => {
-    createCredential(demoUserId, {
+    createCredential(testUserId, {
       platform: "GitHub",
       username: "demo-user",
       password: "fake-password-123",
     });
 
-    const request = new Request("http://localhost:3000/credentials");
+    const request = createCredentialRequest("/credentials");
     const url = new URL(request.url);
 
     const { response, body } = await parseJsonResponse<CredentialListResponseBody>(
@@ -132,15 +158,13 @@ describe("credential routes", () => {
   });
 
   test("handles GET /credentials/:id", async () => {
-    const credential = createCredential(demoUserId, {
+    const credential = createCredential(testUserId, {
       platform: "GitHub",
       username: "demo-user",
       password: "fake-password-123",
     });
 
-    const request = new Request(
-      `http://localhost:3000/credentials/${credential.id}`,
-    );
+    const request = createCredentialRequest(`/credentials/${credential.id}`);
     const url = new URL(request.url);
 
     const { response, body } = await parseJsonResponse<CredentialResponseBody>(
@@ -152,7 +176,7 @@ describe("credential routes", () => {
   });
 
   test("handles PATCH /credentials/:id", async () => {
-    const credential = createCredential(demoUserId, {
+    const credential = createCredential(testUserId, {
       platform: "GitHub",
       username: "demo-user",
       password: "fake-password-123",
@@ -172,7 +196,7 @@ describe("credential routes", () => {
   });
 
   test("handles DELETE /credentials/:id", async () => {
-    const credential = createCredential(demoUserId, {
+    const credential = createCredential(testUserId, {
       platform: "GitHub",
       username: "demo-user",
       password: "fake-password-123",
@@ -182,6 +206,9 @@ describe("credential routes", () => {
       `http://localhost:3000/credentials/${credential.id}`,
       {
         method: "DELETE",
+        headers: {
+          Cookie: sessionCookie,
+        },
       },
     );
     const url = new URL(request.url);
@@ -192,7 +219,54 @@ describe("credential routes", () => {
   });
 
   test("returns 404 for missing credential", async () => {
-    const request = new Request("http://localhost:3000/credentials/missing-id");
+    const request = createCredentialRequest("/credentials/missing-id");
+    const url = new URL(request.url);
+
+    const { response, body } = await parseJsonResponse<ErrorResponseBody>(
+      await handleCredentialRequest(request, url, headers),
+    );
+
+    expect(response.status).toBe(404);
+    expect(body.error).toBe("Credential not found.");
+  });
+
+  test("rejects GET /credentials without a session cookie", async () => {
+    const request = new Request("http://localhost:3000/credentials");
+    const url = new URL(request.url);
+
+    const { response, body } = await parseJsonResponse<ErrorResponseBody>(
+      await handleCredentialRequest(request, url, headers),
+    );
+
+    expect(response.status).toBe(401);
+    expect(body.error).toBe("Authentication is required.");
+  });
+
+  test("does not return another user's credentials", async () => {
+    createCredential(otherUserId, {
+      platform: "GitHub",
+      username: "other-demo-user",
+      password: "fake-password-123",
+    });
+
+    const request = createCredentialRequest("/credentials");
+    const url = new URL(request.url);
+
+    const { response, body } = await parseJsonResponse<CredentialListResponseBody>(
+      await handleCredentialRequest(request, url, headers),
+    );
+
+    expect(response.status).toBe(200);
+    expect(body.data).toHaveLength(0);
+  });
+
+  test("returns 404 for another user's credential id", async () => {
+    const credential = createCredential(otherUserId, {
+      platform: "GitHub",
+      username: "other-demo-user",
+      password: "fake-password-123",
+    });
+    const request = createCredentialRequest(`/credentials/${credential.id}`);
     const url = new URL(request.url);
 
     const { response, body } = await parseJsonResponse<ErrorResponseBody>(
