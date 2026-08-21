@@ -1,6 +1,7 @@
 import { createCredential } from "../credentials/service";
+import { hashPassword } from "../auth/password";
 import { db } from "./client";
-import { credentials, users } from "./schema";
+import { credentials, sessions, users } from "./schema";
 import { createUser } from "../users/service";
 
 if (Bun.env.NODE_ENV === "production") {
@@ -8,25 +9,25 @@ if (Bun.env.NODE_ENV === "production") {
 }
 
 db.delete(credentials).run();
+db.delete(sessions).run();
 db.delete(users).run();
 
 const demoUser = createUser({
-  id: "demo-user-id",
   username: "demo-user",
-  passwordHash: "fake-argon2id-hash-for-seed",
+  passwordHash: await hashPassword("fake-password-123"),
 });
 
-createCredential(demoUser.id, {
+await createCredential(demoUser.id, {
   platform: "GitHub",
   username: "demo-user",
   password: "fake-password-123",
 });
 
-createCredential(demoUser.id, {
+await createCredential(demoUser.id, {
   platform: "Gmail",
   username: "demo-mail-user",
   password: "fake-password-456",
   notes: "Fake email account for practice.",
 });
 
-console.log("Credential table seeded.");
+console.log("Database seeded.");

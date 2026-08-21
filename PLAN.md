@@ -169,14 +169,14 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 
 ### Milestone 6: Database Hardening and Backend Encryption
 
-- [ ] Choose a mature authenticated encryption package.
-- [ ] Create crypto service.
-- [ ] Encrypt sensitive fields.
-- [ ] Decrypt sensitive fields.
-- [ ] Manage nonce correctly.
-- [ ] Store crypto version.
-- [ ] Use environment variable encryption key.
-- [ ] Add tests for security behavior.
+- [x] Choose a mature authenticated encryption package.
+- [x] Create crypto service.
+- [x] Encrypt sensitive fields.
+- [x] Decrypt sensitive fields.
+- [x] Manage nonce correctly.
+- [x] Store crypto version.
+- [x] Use environment variable encryption key.
+- [x] Add tests for security behavior.
 
 ### Milestone 7: RWD and Hardening
 

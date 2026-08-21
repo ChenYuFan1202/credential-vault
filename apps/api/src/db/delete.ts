@@ -1,10 +1,12 @@
 import { db } from "./client";
-import { credentials } from "./schema";
+import { credentials, sessions, users } from "./schema";
 
 if (Bun.env.NODE_ENV === "production") {
-  throw new Error("Refusing to delete credential data in production.");
+  throw new Error("Refusing to delete database table data in production.");
 }
 
 db.delete(credentials).run();
+db.delete(sessions).run();
+db.delete(users).run();
 
-console.log("Credential table data deleted.");
+console.log("Database table data deleted.");

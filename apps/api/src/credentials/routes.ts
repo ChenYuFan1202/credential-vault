@@ -97,7 +97,7 @@ export async function handleCredentialRequest(
   }
 
   if (url.pathname === "/credentials" && request.method === "GET") {
-    const rows = listCredentials(currentUser.id);
+    const rows = await listCredentials(currentUser.id);
 
     return Response.json(
       {
@@ -124,7 +124,7 @@ export async function handleCredentialRequest(
       );
     }
 
-    const credential = createCredential(currentUser.id, body);
+    const credential = await createCredential(currentUser.id, body);
 
     return Response.json(
       {
@@ -144,7 +144,7 @@ export async function handleCredentialRequest(
       return credentialIdRequiredResponse(headers);
     }
 
-    const credential = getCredentialById(currentUser.id, id);
+    const credential = await getCredentialById(currentUser.id, id);
 
     if (credential === undefined) {
       return credentialNotFoundResponse(headers);
@@ -181,7 +181,7 @@ export async function handleCredentialRequest(
       );
     }
 
-    const credential = updateCredential(currentUser.id, id, body);
+    const credential = await updateCredential(currentUser.id, id, body);
 
     if (credential === undefined) {
       return credentialNotFoundResponse(headers);

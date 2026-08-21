@@ -3,6 +3,7 @@ import { db } from "../db/client";
 import { credentials, users } from "../db/schema";
 import { createSessionCookie } from "../auth/cookies";
 import { createSession } from "../auth/session";
+import { setTestEncryptionKey } from "../crypto/test-helpers";
 import { createUser } from "../users/service";
 import { createCredential } from "./service";
 import { handleCredentialRequest } from "./routes";
@@ -35,7 +36,9 @@ let testUserId = "";
 let otherUserId = "";
 let sessionCookie = "";
 
-beforeEach(() => {
+beforeEach(async () => {
+  await setTestEncryptionKey();
+
   db.delete(credentials).run();
   db.delete(users).run();
   const testUser = createUser({
@@ -99,7 +102,7 @@ describe("credential routes", () => {
   });
 
   test("handles GET /credentials", async () => {
-    createCredential(testUserId, {
+    await createCredential(testUserId, {
       platform: "GitHub",
       username: "demo-user",
       password: "fake-password-123",
@@ -158,7 +161,7 @@ describe("credential routes", () => {
   });
 
   test("handles GET /credentials/:id", async () => {
-    const credential = createCredential(testUserId, {
+    const credential = await createCredential(testUserId, {
       platform: "GitHub",
       username: "demo-user",
       password: "fake-password-123",
@@ -176,7 +179,7 @@ describe("credential routes", () => {
   });
 
   test("handles PATCH /credentials/:id", async () => {
-    const credential = createCredential(testUserId, {
+    const credential = await createCredential(testUserId, {
       platform: "GitHub",
       username: "demo-user",
       password: "fake-password-123",
@@ -196,7 +199,7 @@ describe("credential routes", () => {
   });
 
   test("handles DELETE /credentials/:id", async () => {
-    const credential = createCredential(testUserId, {
+    const credential = await createCredential(testUserId, {
       platform: "GitHub",
       username: "demo-user",
       password: "fake-password-123",
@@ -243,7 +246,7 @@ describe("credential routes", () => {
   });
 
   test("does not return another user's credentials", async () => {
-    createCredential(otherUserId, {
+    await createCredential(otherUserId, {
       platform: "GitHub",
       username: "other-demo-user",
       password: "fake-password-123",
@@ -261,7 +264,7 @@ describe("credential routes", () => {
   });
 
   test("returns 404 for another user's credential id", async () => {
-    const credential = createCredential(otherUserId, {
+    const credential = await createCredential(otherUserId, {
       platform: "GitHub",
       username: "other-demo-user",
       password: "fake-password-123",

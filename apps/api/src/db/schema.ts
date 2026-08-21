@@ -1,4 +1,4 @@
-import { sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
@@ -24,9 +24,13 @@ export const credentials = sqliteTable("credentials", {
     .notNull()
     .references(() => users.id),
   platform: text("platform").notNull(),
-  username: text("username").notNull(),
-  password: text("password").notNull(),
-  notes: text("notes"),
+  usernameEncrypted: text("username_encrypted").notNull(),
+  usernameNonce: text("username_nonce").notNull(),
+  passwordEncrypted: text("password_encrypted").notNull(),
+  passwordNonce: text("password_nonce").notNull(),
+  notesEncrypted: text("notes_encrypted"),
+  notesNonce: text("notes_nonce"),
+  cryptoVersion: integer("crypto_version").notNull(),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });

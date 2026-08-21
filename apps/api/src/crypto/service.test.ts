@@ -1,17 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import sodium from "libsodium-wrappers";
+import { createTestEncryptionKey } from "./test-helpers";
 import { decryptString, encryptString } from "./service";
 
 const encryptionKeyEnvName = "CREDENTIAL_ENCRYPTION_KEY";
 let originalEncryptionKey: string | undefined;
-
-async function createEncryptionKey(): Promise<string> {
-  await sodium.ready;
-
-  return sodium.to_base64(
-    sodium.randombytes_buf(sodium.crypto_secretbox_KEYBYTES),
-  );
-}
 
 function tamperLastCharacter(value: string): string {
   const replacement = value.endsWith("A") ? "B" : "A";
@@ -21,7 +14,7 @@ function tamperLastCharacter(value: string): string {
 
 beforeEach(async () => {
   originalEncryptionKey = Bun.env[encryptionKeyEnvName];
-  Bun.env[encryptionKeyEnvName] = await createEncryptionKey();
+  Bun.env[encryptionKeyEnvName] = await createTestEncryptionKey();
 });
 
 afterEach(() => {
