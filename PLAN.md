@@ -75,14 +75,15 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 - Do not add admin/user roles for auth version 1.
 - Use ownership-based authorization for credentials.
 - Use Argon2id for login password hashing.
+- Use NaCl/libsodium authenticated encryption for credential field encryption.
 - Store a random session token in the browser cookie.
 - Store only `sessionTokenHash`, not the raw session token, in the database.
 - Check `expiresAt` on each authenticated request.
 - Delete an expired session when it is encountered.
 - Logout deletes the current session.
-- Do not store user email as plaintext.
-- Store user email with `emailHash` for lookup and `emailEncrypted` for display.
-- Use a keyed hash / blind index for searchable sensitive values.
+- If email auth is added later, do not store user email as plaintext.
+- If email auth is added later, store user email with `emailHash` for lookup and `emailEncrypted` for display.
+- Use a keyed hash / blind index for searchable sensitive values if searchable sensitive values are added later.
 - Store login passwords with password hashing, not encryption.
 - Use precise field suffixes such as `Hash` and `Encrypted` instead of vague names like `Secured`.
 - Do not use real account passwords in tests or examples.
@@ -170,8 +171,6 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 
 - [ ] Choose a mature authenticated encryption package.
 - [ ] Create crypto service.
-- [ ] Add `emailHash` for user lookup.
-- [ ] Add `emailEncrypted` for user display.
 - [ ] Encrypt sensitive fields.
 - [ ] Decrypt sensitive fields.
 - [ ] Manage nonce correctly.
