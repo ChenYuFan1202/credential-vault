@@ -27,7 +27,7 @@ export function isCreateCredentialInput(
     typeof input.username === "string" &&
     input.username.trim() !== "" &&
     typeof input.password === "string" &&
-    input.password.length >= 8 &&
+    input.password !== "" &&
     (input.notes === undefined || typeof input.notes === "string")
   );
 }
@@ -56,7 +56,7 @@ export function isUpdateCredentialInput(
     (!hasUsername ||
       (typeof input.username === "string" && input.username.trim() !== "")) &&
     (!hasPassword ||
-      (typeof input.password === "string" && input.password.length >= 8)) &&
+      (typeof input.password === "string" && input.password !== "")) &&
     (!hasNotes || input.notes === null || typeof input.notes === "string")
   );
 }

@@ -144,6 +144,22 @@ describe("credential routes", () => {
     expect(body.data.platform).toBe("GitHub");
   });
 
+  test("handles POST /credentials with a short stored password", async () => {
+    const request = createJsonRequest("/credentials", "POST", {
+      platform: "Bank",
+      username: "demo-user",
+      password: "1",
+    });
+    const url = new URL(request.url);
+
+    const { response, body } = await parseJsonResponse<CredentialResponseBody>(
+      await handleCredentialRequest(request, url, headers),
+    );
+
+    expect(response.status).toBe(201);
+    expect(body.data.password).toBe("1");
+  });
+
   test("rejects invalid POST /credentials input", async () => {
     const request = createJsonRequest("/credentials", "POST", {
       platform: "",
@@ -196,6 +212,26 @@ describe("credential routes", () => {
 
     expect(response.status).toBe(200);
     expect(body.data.platform).toBe("GitHub Updated");
+  });
+
+  test("handles PATCH /credentials/:id with a short stored password", async () => {
+    const credential = await createCredential(testUserId, {
+      platform: "Bank",
+      username: "demo-user",
+      password: "fake-password-123",
+    });
+
+    const request = createJsonRequest(`/credentials/${credential.id}`, "PATCH", {
+      password: "1",
+    });
+    const url = new URL(request.url);
+
+    const { response, body } = await parseJsonResponse<CredentialResponseBody>(
+      await handleCredentialRequest(request, url, headers),
+    );
+
+    expect(response.status).toBe(200);
+    expect(body.data.password).toBe("1");
   });
 
   test("handles DELETE /credentials/:id", async () => {

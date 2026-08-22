@@ -189,6 +189,7 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 - [x] Add confirmation dialog.
 - [ ] Add password change flow.
 - [ ] Add manual credential export for user-owned backup.
+- [ ] Add custom encrypted credential fields.
 - [ ] Confirm sensitive data is not logged.
 - [ ] Confirm API responses do not expose unnecessary data.
 - [ ] Confirm `.env` is ignored.

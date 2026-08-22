@@ -102,7 +102,6 @@ async function copyText(value: string, message: string): Promise<void> {
             autocomplete="new-password"
             @input="emit('updateEditField', 'password', getFormValue($event))"
           />
-          <small>At least 8 characters.</small>
         </label>
 
         <label>

@@ -28,7 +28,7 @@ const canCreateCredential = computed(() => {
   return (
     newCredential.value.platform.trim() !== "" &&
     newCredential.value.username.trim() !== "" &&
-    newCredential.value.password.length >= 8
+    newCredential.value.password !== ""
   );
 });
 
@@ -75,7 +75,6 @@ function submitForm(): void {
           type="password"
           autocomplete="new-password"
         />
-        <small>At least 8 characters.</small>
       </label>
 
       <label>

@@ -91,7 +91,7 @@ const canUpdateCredential = computed(() => {
   return (
     editCredential.value.platform.trim() !== "" &&
     editCredential.value.username.trim() !== "" &&
-    editCredential.value.password.length >= 8
+    editCredential.value.password !== ""
   );
 });
 
@@ -306,7 +306,7 @@ async function createCredential(
     if (!response.ok) {
       throw new Error(
         getApiErrorMessage(response, "Could not create credential.", {
-          400: "Platform and username are required. Password must be at least 8 characters.",
+          400: "Platform, username, and password are required.",
         }),
       );
     }
@@ -451,7 +451,7 @@ async function updateCredential(): Promise<void> {
     if (!response.ok) {
       throw new Error(
         getApiErrorMessage(response, "Could not update credential.", {
-          400: "Platform and username are required. Password must be at least 8 characters.",
+          400: "Platform, username, and password are required.",
           404: "Credential could not be found.",
         }),
       );
