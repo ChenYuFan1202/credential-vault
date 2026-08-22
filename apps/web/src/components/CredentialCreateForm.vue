@@ -23,6 +23,7 @@ const newCredential = ref<CreateCredentialForm>({
   password: "",
   notes: "",
 });
+const isPasswordVisible = ref(false);
 
 const canCreateCredential = computed(() => {
   return (
@@ -70,11 +71,20 @@ function submitForm(): void {
 
       <label>
         <span>Password</span>
-        <input
-          v-model="newCredential.password"
-          type="password"
-          autocomplete="new-password"
-        />
+        <div class="password-input-row">
+          <input
+            v-model="newCredential.password"
+            :type="isPasswordVisible ? 'text' : 'password'"
+            autocomplete="new-password"
+          />
+
+          <button
+            type="button"
+            @click="isPasswordVisible = !isPasswordVisible"
+          >
+            {{ isPasswordVisible ? "Hide" : "Show" }}
+          </button>
+        </div>
       </label>
 
       <label>

@@ -188,6 +188,12 @@ p {
   color: #4b647f;
 }
 
+.password-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
 .credential-form button {
   justify-self: start;
 }
@@ -336,6 +342,10 @@ p {
   }
 
   .secret-row {
+    grid-template-columns: 1fr;
+  }
+
+  .password-input-row {
     grid-template-columns: 1fr;
   }
 }

@@ -40,6 +40,7 @@ const emit = defineEmits<{
 }>();
 
 const isPasswordVisible = ref(false);
+const isEditPasswordVisible = ref(false);
 const copyMessage = ref("");
 
 const displayedPassword = computed(() => {
@@ -96,12 +97,21 @@ async function copyText(value: string, message: string): Promise<void> {
 
         <label>
           <span>Password</span>
-          <input
-            :value="editCredential.password"
-            type="password"
-            autocomplete="new-password"
-            @input="emit('updateEditField', 'password', getFormValue($event))"
-          />
+          <div class="password-input-row">
+            <input
+              :value="editCredential.password"
+              :type="isEditPasswordVisible ? 'text' : 'password'"
+              autocomplete="new-password"
+              @input="emit('updateEditField', 'password', getFormValue($event))"
+            />
+
+            <button
+              type="button"
+              @click="isEditPasswordVisible = !isEditPasswordVisible"
+            >
+              {{ isEditPasswordVisible ? "Hide" : "Show" }}
+            </button>
+          </div>
         </label>
 
         <label>
