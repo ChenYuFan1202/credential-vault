@@ -64,6 +64,8 @@ const currentUser = ref<CurrentUser | null>(null);
 const isAuthLoading = ref(true);
 const authErrorMessage = ref("");
 const isSubmittingAuth = ref(false);
+const isLoggingOut = ref(false);
+const logoutErrorMessage = ref("");
 const credentials = ref<Credential[]>([]);
 const isCredentialLoading = ref(true);
 const credentialErrorMessage = ref("");
@@ -264,14 +266,31 @@ async function register(input: AuthFormInput): Promise<void> {
 }
 
 async function logout(): Promise<void> {
-  await fetch("http://localhost:3000/auth/logout", {
-    method: "POST",
-    credentials: "include",
-  });
+  isLoggingOut.value = true;
+  logoutErrorMessage.value = "";
 
-  currentUser.value = null;
-  credentials.value = [];
-  closeCredentialDetail();
+  try {
+    const response = await fetch("http://localhost:3000/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error(getApiErrorMessage(response, "Could not log out."));
+    }
+
+    currentUser.value = null;
+    credentials.value = [];
+    closeCredentialDetail();
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      logoutErrorMessage.value = error.message;
+    } else {
+      logoutErrorMessage.value = "An unknown error occurred.";
+    }
+  } finally {
+    isLoggingOut.value = false;
+  }
 }
 
 async function createCredential(
@@ -536,10 +555,14 @@ onMounted(() => {
             <h2>{{ currentUser.username }}</h2>
           </div>
 
-          <button type="button" @click="logout">
-            Logout
+          <button type="button" :disabled="isLoggingOut" @click="logout">
+            {{ isLoggingOut ? "Logging out..." : "Logout" }}
           </button>
         </div>
+
+        <p v-if="logoutErrorMessage" class="error">
+          {{ logoutErrorMessage }}
+        </p>
       </section>
 
       <CredentialCreateForm
