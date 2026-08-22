@@ -262,6 +262,31 @@ p {
   color: #067647;
 }
 
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(15 23 42 / 0.42);
+}
+
+.dialog-panel {
+  display: grid;
+  gap: 16px;
+  width: min(100%, 420px);
+  padding: 20px;
+  border: 1px solid #dce2ea;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 18px 42px rgb(15 23 42 / 0.18);
+}
+
+.dialog-panel p {
+  color: #4b647f;
+}
+
 .credential-list strong {
   display: block;
 }

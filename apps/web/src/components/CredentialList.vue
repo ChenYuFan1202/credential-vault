@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, ref } from "vue";
+import ConfirmDialog from "./ConfirmDialog.vue";
 import CredentialDetail from "./CredentialDetail.vue";
 
 type Credential = {
@@ -20,7 +22,7 @@ type EditCredentialForm = {
 
 type EditCredentialField = keyof EditCredentialForm;
 
-defineProps<{
+const props = defineProps<{
   credentials: Credential[];
   isLoading: boolean;
   errorMessage: string;
@@ -47,6 +49,32 @@ const emit = defineEmits<{
   closeDetail: [];
   updateEditField: [field: EditCredentialField, value: string];
 }>();
+
+const credentialPendingDeleteId = ref<string | null>(null);
+
+const credentialPendingDelete = computed(() => {
+  return (
+    props.credentials.find(
+      (credential) => credential.id === credentialPendingDeleteId.value,
+    ) ?? null
+  );
+});
+
+function requestDeleteCredential(id: string): void {
+  credentialPendingDeleteId.value = id;
+}
+
+function cancelDeleteCredential(): void {
+  credentialPendingDeleteId.value = null;
+}
+
+function confirmDeleteCredential(): void {
+  if (credentialPendingDeleteId.value === null) {
+    return;
+  }
+
+  emit("delete", credentialPendingDeleteId.value);
+}
 </script>
 
 <template>
@@ -100,10 +128,9 @@ const emit = defineEmits<{
               <button
                 type="button"
                 class="danger-button"
-                :disabled="deletingCredentialId === credential.id"
-                @click="emit('delete', credential.id)"
+                @click="requestDeleteCredential(credential.id)"
               >
-                {{ deletingCredentialId === credential.id ? "Deleting..." : "Delete" }}
+                Delete
               </button>
             </div>
           </div>
@@ -129,5 +156,15 @@ const emit = defineEmits<{
         </li>
       </ul>
     </template>
+
+    <ConfirmDialog
+      v-if="credentialPendingDelete"
+      title="Delete Credential"
+      :message="`Delete ${credentialPendingDelete.platform}? This cannot be undone.`"
+      confirm-label="Delete"
+      :is-confirming="deletingCredentialId === credentialPendingDelete.id"
+      @confirm="confirmDeleteCredential"
+      @cancel="cancelDeleteCredential"
+    />
   </section>
 </template>
