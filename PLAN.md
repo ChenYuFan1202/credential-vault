@@ -183,7 +183,7 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 - [ ] Improve mobile layout.
 - [x] Add password visibility toggle.
 - [x] Add copy buttons.
-- [ ] Add search.
+- [x] Add search.
 - [ ] Add loading states.
 - [ ] Add error states.
 - [x] Add confirmation dialog.

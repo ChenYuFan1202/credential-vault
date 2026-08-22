@@ -59,6 +59,19 @@ const credentialPendingDelete = computed(() => {
     ) ?? null
   );
 });
+const searchQuery = ref("");
+
+const filteredCredentials = computed(() => {
+  const keyword = searchQuery.value.trim().toLowerCase();
+
+  if (keyword === "") {
+    return props.credentials;
+  }
+
+  return props.credentials.filter((credential) =>
+    credential.platform.toLowerCase().includes(keyword),
+  );
+});
 
 function requestDeleteCredential(id: string): void {
   credentialPendingDeleteId.value = id;
@@ -101,12 +114,26 @@ function confirmDeleteCredential(): void {
     </p>
 
     <template v-else>
+      <label class="search-field">
+        <span>Search Platform</span>
+        <input
+          v-model="searchQuery"
+          type="search"
+          autocomplete="off"
+          placeholder="GitHub"
+        />
+      </label>
+
       <p v-if="deleteErrorMessage" class="error">
         {{ deleteErrorMessage }}
       </p>
 
-      <ul class="credential-list">
-        <li v-for="credential in credentials" :key="credential.id">
+      <p v-if="filteredCredentials.length === 0" class="empty-message">
+        No matching credentials.
+      </p>
+
+      <ul v-else class="credential-list">
+        <li v-for="credential in filteredCredentials" :key="credential.id">
           <div class="credential-item-heading">
             <div class="credential-summary">
               <strong>{{ credential.platform }}</strong>

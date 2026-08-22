@@ -187,6 +187,16 @@ p {
   color: #4b647f;
 }
 
+.search-field {
+  display: grid;
+  gap: 6px;
+}
+
+.search-field span {
+  color: #4b647f;
+  font-weight: 700;
+}
+
 .credential-list {
   display: grid;
   gap: 12px;
