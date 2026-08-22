@@ -103,6 +103,18 @@ function getApiErrorMessage(
   return statusMessages[response.status] ?? fallbackMessage;
 }
 
+function getUnknownErrorMessage(error: unknown): string {
+  if (error instanceof TypeError) {
+    return "Cannot connect to the API. Please make sure the backend is running.";
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "An unknown error occurred.";
+}
+
 async function loadHealthStatus(): Promise<void> {
   isLoading.value = true;
   errorMessage.value = "";
@@ -116,11 +128,7 @@ async function loadHealthStatus(): Promise<void> {
 
     apiStatus.value = (await response.json()) as HealthResponse;
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      errorMessage.value = error.message;
-    } else {
-      errorMessage.value = "An unknown error occurred.";
-    }
+    errorMessage.value = getUnknownErrorMessage(error);
   } finally {
     isLoading.value = false;
   }
@@ -154,11 +162,7 @@ async function loadCurrentUser(): Promise<void> {
   } catch (error: unknown) {
     currentUser.value = null;
 
-    if (error instanceof Error) {
-      authErrorMessage.value = error.message;
-    } else {
-      authErrorMessage.value = "An unknown error occurred.";
-    }
+    authErrorMessage.value = getUnknownErrorMessage(error);
   } finally {
     isAuthLoading.value = false;
   }
@@ -183,11 +187,7 @@ async function loadCredentials(): Promise<void> {
 
     credentials.value = body.data;
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      credentialErrorMessage.value = error.message;
-    } else {
-      credentialErrorMessage.value = "An unknown error occurred.";
-    }
+    credentialErrorMessage.value = getUnknownErrorMessage(error);
   } finally {
     isCredentialLoading.value = false;
   }
@@ -220,11 +220,7 @@ async function login(input: AuthFormInput): Promise<void> {
     currentUser.value = body.data;
     await loadCredentials();
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      authErrorMessage.value = error.message;
-    } else {
-      authErrorMessage.value = "An unknown error occurred.";
-    }
+    authErrorMessage.value = getUnknownErrorMessage(error);
   } finally {
     isSubmittingAuth.value = false;
   }
@@ -255,11 +251,7 @@ async function register(input: AuthFormInput): Promise<void> {
 
     await login(input);
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      authErrorMessage.value = error.message;
-    } else {
-      authErrorMessage.value = "An unknown error occurred.";
-    }
+    authErrorMessage.value = getUnknownErrorMessage(error);
   } finally {
     isSubmittingAuth.value = false;
   }
@@ -283,11 +275,7 @@ async function logout(): Promise<void> {
     credentials.value = [];
     closeCredentialDetail();
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      logoutErrorMessage.value = error.message;
-    } else {
-      logoutErrorMessage.value = "An unknown error occurred.";
-    }
+    logoutErrorMessage.value = getUnknownErrorMessage(error);
   } finally {
     isLoggingOut.value = false;
   }
@@ -326,11 +314,7 @@ async function createCredential(
     onSuccess();
     await loadCredentials();
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      createCredentialErrorMessage.value = error.message;
-    } else {
-      createCredentialErrorMessage.value = "An unknown error occurred.";
-    }
+    createCredentialErrorMessage.value = getUnknownErrorMessage(error);
   } finally {
     isCreatingCredential.value = false;
   }
@@ -356,11 +340,7 @@ async function deleteCredential(id: string): Promise<void> {
 
     await loadCredentials();
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      deleteCredentialErrorMessage.value = error.message;
-    } else {
-      deleteCredentialErrorMessage.value = "An unknown error occurred.";
-    }
+    deleteCredentialErrorMessage.value = getUnknownErrorMessage(error);
   } finally {
     deletingCredentialId.value = null;
   }
@@ -391,11 +371,7 @@ async function loadCredentialDetail(id: string): Promise<void> {
 
     selectedCredential.value = body.data;
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      selectedCredentialErrorMessage.value = error.message;
-    } else {
-      selectedCredentialErrorMessage.value = "An unknown error occurred.";
-    }
+    selectedCredentialErrorMessage.value = getUnknownErrorMessage(error);
   } finally {
     isLoadingSelectedCredential.value = false;
   }
@@ -485,11 +461,7 @@ async function updateCredential(): Promise<void> {
     await loadCredentialDetail(credentialId);
     isEditingCredential.value = false;
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      updateCredentialErrorMessage.value = error.message;
-    } else {
-      updateCredentialErrorMessage.value = "An unknown error occurred.";
-    }
+    updateCredentialErrorMessage.value = getUnknownErrorMessage(error);
   } finally {
     isUpdatingCredential.value = false;
   }
