@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, ref } from "vue";
+
 type Credential = {
   id: string;
   platform: string;
@@ -18,7 +20,7 @@ type EditCredentialForm = {
 
 type EditCredentialField = keyof EditCredentialForm;
 
-defineProps<{
+const props = defineProps<{
   credential: Credential | null;
   isLoading: boolean;
   errorMessage: string;
@@ -37,8 +39,24 @@ const emit = defineEmits<{
   updateEditField: [field: EditCredentialField, value: string];
 }>();
 
+const isPasswordVisible = ref(false);
+const copyMessage = ref("");
+
+const displayedPassword = computed(() => {
+  return isPasswordVisible.value ? props.credential?.password ?? "" : "••••••••";
+});
+
 function getFormValue(event: Event): string {
   return (event.target as HTMLInputElement | HTMLTextAreaElement).value;
+}
+
+async function copyText(value: string, message: string): Promise<void> {
+  await navigator.clipboard.writeText(value);
+  copyMessage.value = message;
+
+  window.setTimeout(() => {
+    copyMessage.value = "";
+  }, 1600);
 }
 </script>
 
@@ -117,14 +135,49 @@ function getFormValue(event: Event): string {
         <dl>
           <div>
             <dt>Username</dt>
-            <dd>{{ credential.username }}</dd>
+            <dd>
+              <div class="secret-row">
+                <span class="secret-value">{{ credential.username }}</span>
+
+                <button
+                  type="button"
+                  @click="copyText(credential.username, 'Username copied.')"
+                >
+                  Copy Username
+                </button>
+              </div>
+            </dd>
           </div>
 
           <div>
             <dt>Password</dt>
-            <dd>{{ credential.password }}</dd>
+            <dd>
+              <div class="secret-row">
+                <span class="secret-value">{{ displayedPassword }}</span>
+
+                <div class="credential-actions">
+                  <button
+                    type="button"
+                    @click="isPasswordVisible = !isPasswordVisible"
+                  >
+                    {{ isPasswordVisible ? "Hide" : "Show" }}
+                  </button>
+
+                  <button
+                    type="button"
+                    @click="copyText(credential.password, 'Password copied.')"
+                  >
+                    Copy Password
+                  </button>
+                </div>
+              </div>
+            </dd>
           </div>
         </dl>
+
+        <p v-if="copyMessage" class="success-message">
+          {{ copyMessage }}
+        </p>
 
         <div class="credential-actions">
           <button type="button" @click="emit('startEdit')">

@@ -181,8 +181,8 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 ### Milestone 7: RWD and Hardening
 
 - [ ] Improve mobile layout.
-- [ ] Add password visibility toggle.
-- [ ] Add copy buttons.
+- [x] Add password visibility toggle.
+- [x] Add copy buttons.
 - [ ] Add search.
 - [ ] Add loading states.
 - [ ] Add error states.

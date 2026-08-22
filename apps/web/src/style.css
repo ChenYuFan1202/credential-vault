@@ -246,6 +246,22 @@ p {
   margin: 0;
 }
 
+.secret-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.secret-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.success-message {
+  color: #067647;
+}
+
 .credential-list strong {
   display: block;
 }
@@ -273,5 +289,9 @@ p {
   .credential-detail dl > div {
     grid-template-columns: 1fr;
     gap: 4px;
+  }
+
+  .secret-row {
+    grid-template-columns: 1fr;
   }
 }
