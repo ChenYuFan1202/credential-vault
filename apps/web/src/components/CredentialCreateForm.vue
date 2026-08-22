@@ -75,6 +75,7 @@ function submitForm(): void {
           type="password"
           autocomplete="new-password"
         />
+        <small>At least 8 characters.</small>
       </label>
 
       <label>

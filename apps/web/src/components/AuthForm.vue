@@ -16,6 +16,7 @@ defineProps<{
 const emit = defineEmits<{
   login: [input: AuthFormInput];
   register: [input: AuthFormInput];
+  clearError: [];
 }>();
 
 const mode = ref<AuthMode>("login");
@@ -42,6 +43,13 @@ function submitForm(): void {
     emit("register", input);
   }
 }
+
+function switchMode(): void {
+  mode.value = mode.value === "login" ? "register" : "login";
+  username.value = "";
+  password.value = "";
+  emit("clearError");
+}
 </script>
 
 <template>
@@ -54,7 +62,7 @@ function submitForm(): void {
 
       <button
         type="button"
-        @click="mode = mode === 'login' ? 'register' : 'login'"
+        @click="switchMode"
       >
         {{ mode === "login" ? "Create Account" : "Use Login" }}
       </button>
@@ -64,6 +72,9 @@ function submitForm(): void {
       <label>
         <span>Username</span>
         <input v-model="username" type="text" autocomplete="username" />
+        <small v-if="mode === 'register'">
+          At least 3 characters.
+        </small>
       </label>
 
       <label>
@@ -73,6 +84,9 @@ function submitForm(): void {
           type="password"
           :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
         />
+        <small v-if="mode === 'register'">
+          At least 8 characters.
+        </small>
       </label>
 
       <p v-if="errorMessage" class="error">

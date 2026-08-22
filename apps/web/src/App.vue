@@ -93,6 +93,14 @@ const canUpdateCredential = computed(() => {
   );
 });
 
+function getApiErrorMessage(
+  response: Response,
+  fallbackMessage: string,
+  statusMessages: Record<number, string> = {},
+): string {
+  return statusMessages[response.status] ?? fallbackMessage;
+}
+
 async function loadHealthStatus(): Promise<void> {
   isLoading.value = true;
   errorMessage.value = "";
@@ -132,7 +140,9 @@ async function loadCurrentUser(): Promise<void> {
     }
 
     if (!response.ok) {
-      throw new Error(`Current user request failed with status ${response.status}`);
+      throw new Error(
+        getApiErrorMessage(response, "Could not check current user."),
+      );
     }
 
     const body = (await response.json()) as AuthResponse;
@@ -162,7 +172,9 @@ async function loadCredentials(): Promise<void> {
     });
 
     if (!response.ok) {
-      throw new Error(`Credential request failed with status ${response.status}`);
+      throw new Error(
+        getApiErrorMessage(response, "Could not load credentials."),
+      );
     }
 
     const body = (await response.json()) as CredentialListResponse;
@@ -194,7 +206,11 @@ async function login(input: AuthFormInput): Promise<void> {
     });
 
     if (!response.ok) {
-      throw new Error(`Login failed with status ${response.status}`);
+      throw new Error(
+        getApiErrorMessage(response, "Login failed.", {
+          401: "Invalid username or password.",
+        }),
+      );
     }
 
     const body = (await response.json()) as AuthResponse;
@@ -227,7 +243,12 @@ async function register(input: AuthFormInput): Promise<void> {
     });
 
     if (!response.ok) {
-      throw new Error(`Registration failed with status ${response.status}`);
+      throw new Error(
+        getApiErrorMessage(response, "Registration failed.", {
+          400: "Username must be at least 3 characters and password must be at least 8 characters.",
+          409: "Username is already taken.",
+        }),
+      );
     }
 
     await login(input);
@@ -276,7 +297,11 @@ async function createCredential(
     });
 
     if (!response.ok) {
-      throw new Error(`Create credential failed with status ${response.status}`);
+      throw new Error(
+        getApiErrorMessage(response, "Could not create credential.", {
+          400: "Platform and username are required. Password must be at least 8 characters.",
+        }),
+      );
     }
 
     onSuccess();
@@ -303,7 +328,11 @@ async function deleteCredential(id: string): Promise<void> {
     });
 
     if (!response.ok) {
-      throw new Error(`Delete credential failed with status ${response.status}`);
+      throw new Error(
+        getApiErrorMessage(response, "Could not delete credential.", {
+          404: "Credential could not be found.",
+        }),
+      );
     }
 
     await loadCredentials();
@@ -333,7 +362,9 @@ async function loadCredentialDetail(id: string): Promise<void> {
 
     if (!response.ok) {
       throw new Error(
-        `Credential detail request failed with status ${response.status}`,
+        getApiErrorMessage(response, "Could not load credential detail.", {
+          404: "Credential could not be found.",
+        }),
       );
     }
 
@@ -390,6 +421,10 @@ function updateEditCredentialField(
   };
 }
 
+function clearAuthError(): void {
+  authErrorMessage.value = "";
+}
+
 async function updateCredential(): Promise<void> {
   const credentialId = selectedCredentialId.value;
 
@@ -419,7 +454,12 @@ async function updateCredential(): Promise<void> {
     );
 
     if (!response.ok) {
-      throw new Error(`Update credential failed with status ${response.status}`);
+      throw new Error(
+        getApiErrorMessage(response, "Could not update credential.", {
+          400: "Platform and username are required. Password must be at least 8 characters.",
+          404: "Credential could not be found.",
+        }),
+      );
     }
 
     await loadCredentials();
@@ -485,6 +525,7 @@ onMounted(() => {
       :error-message="authErrorMessage"
       @login="login"
       @register="register"
+      @clear-error="clearAuthError"
     />
 
     <template v-else>
