@@ -96,6 +96,10 @@ function confirmDeleteCredential(): void {
         <p class="eyebrow">Credentials</p>
         <h2>Stored Credentials</h2>
       </div>
+
+      <RouterLink class="button-link" to="/credentials/new">
+        Add Credential
+      </RouterLink>
     </div>
 
     <p v-if="isLoading">Loading credentials...</p>

@@ -53,9 +53,15 @@ function submitForm(): void {
 
 <template>
   <section class="credential-panel">
-    <div>
-      <p class="eyebrow">New Credential</p>
-      <h2>Add Credential</h2>
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">New Credential</p>
+        <h2>Add Credential</h2>
+      </div>
+
+      <RouterLink class="button-link" to="/credentials">
+        Back to Credentials
+      </RouterLink>
     </div>
 
     <form class="credential-form" @submit.prevent="submitForm">

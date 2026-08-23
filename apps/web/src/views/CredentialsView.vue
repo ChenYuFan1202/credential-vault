@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { getApiErrorMessage, getUnknownErrorMessage } from "../api/errors";
-import CredentialCreateForm from "../components/CredentialCreateForm.vue";
 import CredentialList from "../components/CredentialList.vue";
 
 type Credential = {
@@ -20,13 +19,6 @@ type CredentialListResponse = {
 
 type CredentialResponse = {
   data: Credential;
-};
-
-type CreateCredentialForm = {
-  platform: string;
-  username: string;
-  password: string;
-  notes: string;
 };
 
 type EditCredentialForm = {
@@ -54,8 +46,6 @@ const editCredential = ref<EditCredentialForm>({
 });
 const isUpdatingCredential = ref(false);
 const updateCredentialErrorMessage = ref("");
-const isCreatingCredential = ref(false);
-const createCredentialErrorMessage = ref("");
 
 const canUpdateCredential = computed(() => {
   return (
@@ -87,45 +77,6 @@ async function loadCredentials(): Promise<void> {
     credentialErrorMessage.value = getUnknownErrorMessage(error);
   } finally {
     isCredentialLoading.value = false;
-  }
-}
-
-async function createCredential(
-  input: CreateCredentialForm,
-  onSuccess: () => void,
-): Promise<void> {
-  isCreatingCredential.value = true;
-  createCredentialErrorMessage.value = "";
-
-  try {
-    const response = await fetch("http://localhost:3000/credentials", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        platform: input.platform,
-        username: input.username,
-        password: input.password,
-        notes: input.notes || undefined,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        getApiErrorMessage(response, "Could not create credential.", {
-          400: "Platform, username, and password are required.",
-        }),
-      );
-    }
-
-    onSuccess();
-    await loadCredentials();
-  } catch (error: unknown) {
-    createCredentialErrorMessage.value = getUnknownErrorMessage(error);
-  } finally {
-    isCreatingCredential.value = false;
   }
 }
 
@@ -278,12 +229,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <CredentialCreateForm
-    :is-creating="isCreatingCredential"
-    :error-message="createCredentialErrorMessage"
-    @create="createCredential"
-  />
-
   <CredentialList
     :credentials="credentials"
     :is-loading="isCredentialLoading"
