@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 type AuthMode = "login" | "register";
 
@@ -8,7 +8,8 @@ type AuthFormInput = {
   password: string;
 };
 
-defineProps<{
+const props = defineProps<{
+  mode: AuthMode;
   isSubmitting: boolean;
   errorMessage: string;
 }>();
@@ -17,9 +18,9 @@ const emit = defineEmits<{
   login: [input: AuthFormInput];
   register: [input: AuthFormInput];
   clearError: [];
+  switchMode: [];
 }>();
 
-const mode = ref<AuthMode>("login");
 const username = ref("");
 const password = ref("");
 const isPasswordVisible = ref(false);
@@ -38,7 +39,7 @@ function submitForm(): void {
     password: password.value,
   };
 
-  if (mode.value === "login") {
+  if (props.mode === "login") {
     emit("login", input);
   } else {
     emit("register", input);
@@ -46,12 +47,22 @@ function submitForm(): void {
 }
 
 function switchMode(): void {
-  mode.value = mode.value === "login" ? "register" : "login";
   username.value = "";
   password.value = "";
   isPasswordVisible.value = false;
   emit("clearError");
+  emit("switchMode");
 }
+
+watch(
+  () => props.mode,
+  () => {
+    username.value = "";
+    password.value = "";
+    isPasswordVisible.value = false;
+    emit("clearError");
+  },
+);
 </script>
 
 <template>

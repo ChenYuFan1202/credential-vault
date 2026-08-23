@@ -86,8 +86,39 @@ main {
   padding: 48px 0;
 }
 
-header {
+.app-header {
+  display: grid;
+  gap: 18px;
   margin-bottom: 28px;
+}
+
+.app-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.app-nav a {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #c8d0dd;
+  border-radius: 6px;
+  padding: 0 14px;
+  color: #172033;
+  background: #ffffff;
+  text-decoration: none;
+}
+
+.app-nav a:hover {
+  border-color: #6b7a90;
+}
+
+.app-nav a.router-link-active {
+  border-color: #1f6feb;
+  color: #0f4aa1;
+  background: #edf5ff;
 }
 
 .eyebrow {

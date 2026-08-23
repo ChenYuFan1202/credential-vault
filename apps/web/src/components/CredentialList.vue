@@ -40,7 +40,6 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  refresh: [];
   view: [id: string];
   delete: [id: string];
   startEdit: [];
@@ -97,10 +96,6 @@ function confirmDeleteCredential(): void {
         <p class="eyebrow">Credentials</p>
         <h2>Stored Credentials</h2>
       </div>
-
-      <button type="button" @click="emit('refresh')">
-        Refresh
-      </button>
     </div>
 
     <p v-if="isLoading">Loading credentials...</p>
