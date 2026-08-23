@@ -25,10 +25,21 @@ button {
   color: #172033;
   background: #ffffff;
   cursor: pointer;
+  font: inherit;
 }
 
 button:hover {
   border-color: #6b7a90;
+}
+
+button.primary-button {
+  color: #0f4aa1;
+  border-color: #1f6feb;
+  background: #ffffff;
+}
+
+button.primary-button:hover {
+  border-color: #0f4aa1;
 }
 
 button.danger-button {
@@ -59,6 +70,7 @@ button:disabled {
   padding: 0 14px;
   color: #172033;
   background: #ffffff;
+  font: inherit;
   text-decoration: none;
 }
 
@@ -124,6 +136,7 @@ main {
   padding: 0 14px;
   color: #172033;
   background: #ffffff;
+  font: inherit;
   text-decoration: none;
 }
 

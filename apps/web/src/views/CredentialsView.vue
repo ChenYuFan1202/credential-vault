@@ -22,6 +22,33 @@ const isCredentialLoading = ref(true);
 const credentialErrorMessage = ref("");
 const deletingCredentialId = ref<string | null>(null);
 const deleteCredentialErrorMessage = ref("");
+const isExportingCredentials = ref(false);
+const exportCredentialErrorMessage = ref("");
+
+function formatExportTimestamp(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+
+  return `${year}-${month}-${day}-${hours}${minutes}${seconds}`;
+}
+
+function downloadTextFile(text: string): void {
+  const blob = new Blob([text], {
+    type: "text/plain;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = `credential-vault-export-${formatExportTimestamp(new Date())}.txt`;
+  link.click();
+
+  URL.revokeObjectURL(url);
+}
 
 async function loadCredentials(): Promise<void> {
   isCredentialLoading.value = true;
@@ -74,6 +101,29 @@ async function deleteCredential(id: string): Promise<void> {
   }
 }
 
+async function exportCredentials(): Promise<void> {
+  isExportingCredentials.value = true;
+  exportCredentialErrorMessage.value = "";
+
+  try {
+    const response = await fetch("http://localhost:3000/credentials/export.txt", {
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        getApiErrorMessage(response, "Could not export credentials."),
+      );
+    }
+
+    downloadTextFile(await response.text());
+  } catch (error: unknown) {
+    exportCredentialErrorMessage.value = getUnknownErrorMessage(error);
+  } finally {
+    isExportingCredentials.value = false;
+  }
+}
+
 onMounted(() => {
   void loadCredentials();
 });
@@ -86,6 +136,9 @@ onMounted(() => {
     :error-message="credentialErrorMessage"
     :deleting-credential-id="deletingCredentialId"
     :delete-error-message="deleteCredentialErrorMessage"
+    :is-exporting="isExportingCredentials"
+    :export-error-message="exportCredentialErrorMessage"
     @delete="deleteCredential"
+    @export="exportCredentials"
   />
 </template>

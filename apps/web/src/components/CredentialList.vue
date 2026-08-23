@@ -18,13 +18,17 @@ const props = defineProps<{
   errorMessage: string;
   deletingCredentialId: string | null;
   deleteErrorMessage: string;
+  isExporting: boolean;
+  exportErrorMessage: string;
 }>();
 
 const emit = defineEmits<{
   delete: [id: string];
+  export: [];
 }>();
 
 const credentialPendingDeleteId = ref<string | null>(null);
+const isExportConfirmOpen = ref(false);
 
 const credentialPendingDelete = computed(() => {
   return (
@@ -62,6 +66,19 @@ function confirmDeleteCredential(): void {
 
   emit("delete", credentialPendingDeleteId.value);
 }
+
+function requestExportCredentials(): void {
+  isExportConfirmOpen.value = true;
+}
+
+function cancelExportCredentials(): void {
+  isExportConfirmOpen.value = false;
+}
+
+function confirmExportCredentials(): void {
+  isExportConfirmOpen.value = false;
+  emit("export");
+}
 </script>
 
 <template>
@@ -72,9 +89,19 @@ function confirmDeleteCredential(): void {
         <h2>Stored Credentials</h2>
       </div>
 
-      <RouterLink class="button-link" to="/credentials/new">
-        Add Credential
-      </RouterLink>
+      <div class="credential-actions">
+        <RouterLink class="button-link" to="/credentials/new">
+          Add Credential
+        </RouterLink>
+
+        <button
+          type="button"
+          :disabled="isExporting || credentials.length === 0"
+          @click="requestExportCredentials"
+        >
+          Export TXT
+        </button>
+      </div>
     </div>
 
     <p v-if="isLoading">Loading credentials...</p>
@@ -100,6 +127,10 @@ function confirmDeleteCredential(): void {
 
       <p v-if="deleteErrorMessage" class="error">
         {{ deleteErrorMessage }}
+      </p>
+
+      <p v-if="exportErrorMessage" class="error">
+        {{ exportErrorMessage }}
       </p>
 
       <p v-if="filteredCredentials.length === 0" class="empty-message">
@@ -140,9 +171,23 @@ function confirmDeleteCredential(): void {
       title="Delete Credential"
       :message="`Delete ${credentialPendingDelete.platform}? This cannot be undone.`"
       confirm-label="Delete"
+      confirming-label="Deleting..."
+      confirm-variant="danger"
       :is-confirming="deletingCredentialId === credentialPendingDelete.id"
       @confirm="confirmDeleteCredential"
       @cancel="cancelDeleteCredential"
+    />
+
+    <ConfirmDialog
+      v-if="isExportConfirmOpen"
+      title="Export Credentials"
+      message="Export decrypted credentials as a TXT file?"
+      confirm-label="Export TXT"
+      confirming-label="Exporting..."
+      confirm-variant="primary"
+      :is-confirming="isExporting"
+      @confirm="confirmExportCredentials"
+      @cancel="cancelExportCredentials"
     />
   </section>
 </template>

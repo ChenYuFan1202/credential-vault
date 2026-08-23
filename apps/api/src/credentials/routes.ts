@@ -109,6 +109,31 @@ export async function handleCredentialRequest(
     );
   }
 
+  if (url.pathname === "/credentials/export.txt" && request.method === "GET") {
+    const rows = await listCredentials(currentUser.id);
+    const sections = rows.map((credential) =>
+      [
+        `Platform: ${credential.platform}`,
+        `Username: ${credential.username}`,
+        `Password: ${credential.password}`,
+        `Notes: ${credential.notes ?? ""}`,
+      ].join("\n"),
+    );
+    const text = [
+      "Credential Vault Export",
+      "",
+      sections.join("\n\n---\n\n"),
+      "",
+    ].join("\n");
+
+    return new Response(text, {
+      headers: {
+        ...headers,
+        "Content-Type": "text/plain; charset=utf-8",
+      },
+    });
+  }
+
   if (url.pathname === "/credentials" && request.method === "POST") {
     const body = await request.json();
 

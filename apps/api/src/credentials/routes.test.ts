@@ -128,6 +128,39 @@ describe("credential routes", () => {
     expect(credential.platform).toBe("GitHub");
   });
 
+  test("handles GET /credentials/export.txt", async () => {
+    await createCredential(testUserId, {
+      platform: "GitHub",
+      username: "demo-user",
+      password: "fake-password-123",
+      notes: "Fake notes.",
+    });
+    await createCredential(otherUserId, {
+      platform: "Other Platform",
+      username: "other-user",
+      password: "other-fake-password-123",
+    });
+    const request = createCredentialRequest("/credentials/export.txt");
+    const url = new URL(request.url);
+
+    const response = await handleCredentialRequest(request, url, headers);
+
+    if (response === null) {
+      throw new Error("Expected route response.");
+    }
+
+    const text = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Content-Type")).toContain("text/plain");
+    expect(text).toContain("Credential Vault Export");
+    expect(text).toContain("Platform: GitHub");
+    expect(text).toContain("Username: demo-user");
+    expect(text).toContain("Password: fake-password-123");
+    expect(text).toContain("Notes: Fake notes.");
+    expect(text).not.toContain("Other Platform");
+  });
+
   test("handles POST /credentials", async () => {
     const request = createJsonRequest("/credentials", "POST", {
       platform: "GitHub",
@@ -272,6 +305,18 @@ describe("credential routes", () => {
 
   test("rejects GET /credentials without a session cookie", async () => {
     const request = new Request("http://localhost:3000/credentials");
+    const url = new URL(request.url);
+
+    const { response, body } = await parseJsonResponse<ErrorResponseBody>(
+      await handleCredentialRequest(request, url, headers),
+    );
+
+    expect(response.status).toBe(401);
+    expect(body.error).toBe("Authentication is required.");
+  });
+
+  test("rejects GET /credentials/export.txt without a session cookie", async () => {
+    const request = new Request("http://localhost:3000/credentials/export.txt");
     const url = new URL(request.url);
 
     const { response, body } = await parseJsonResponse<ErrorResponseBody>(

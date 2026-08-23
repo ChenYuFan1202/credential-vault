@@ -1,10 +1,15 @@
 <script setup lang="ts">
-defineProps<{
+withDefaults(defineProps<{
   title: string;
   message: string;
   confirmLabel: string;
   isConfirming: boolean;
-}>();
+  confirmingLabel?: string;
+  confirmVariant?: "default" | "primary" | "danger";
+}>(), {
+  confirmingLabel: "Confirming...",
+  confirmVariant: "default",
+});
 
 const emit = defineEmits<{
   confirm: [];
@@ -27,11 +32,14 @@ const emit = defineEmits<{
       <div class="credential-actions">
         <button
           type="button"
-          class="danger-button"
+          :class="{
+            'primary-button': confirmVariant === 'primary',
+            'danger-button': confirmVariant === 'danger',
+          }"
           :disabled="isConfirming"
           @click="emit('confirm')"
         >
-          {{ isConfirming ? "Deleting..." : confirmLabel }}
+          {{ isConfirming ? confirmingLabel : confirmLabel }}
         </button>
 
         <button
