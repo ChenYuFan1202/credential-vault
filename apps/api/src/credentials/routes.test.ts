@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test } from "bun:test";
 import { db } from "../db/client";
 import { credentials, users } from "../db/schema";
 import { createSessionCookie } from "../auth/cookies";
+import { hashPassword } from "../auth/password";
 import { createSession } from "../auth/session";
 import { setTestEncryptionKey } from "../crypto/test-helpers";
 import { createUser } from "../users/service";
@@ -43,11 +44,11 @@ beforeEach(async () => {
   db.delete(users).run();
   const testUser = createUser({
     username: "demo-user",
-    passwordHash: "fake-argon2id-hash-for-route-test",
+    passwordHash: await hashPassword("fake-password-123"),
   });
   const otherUser = createUser({
     username: "other-user",
-    passwordHash: "fake-argon2id-hash-for-other-route-test",
+    passwordHash: await hashPassword("other-fake-password-123"),
   });
   const session = createSession(testUser.id);
 

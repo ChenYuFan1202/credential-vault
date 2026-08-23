@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, test } from "bun:test";
 import { db } from "../db/client";
 import { sessions, users } from "../db/schema";
 import { createUser } from "../users/service";
+import { hashPassword } from "./password";
 import {
   createSession,
   deleteSessionByToken,
@@ -12,13 +13,13 @@ import {
 
 let testUserId = "";
 
-beforeEach(() => {
+beforeEach(async () => {
   db.delete(sessions).run();
   db.delete(users).run();
 
   const user = createUser({
     username: "session-test-user",
-    passwordHash: "fake-argon2id-hash-for-session-test",
+    passwordHash: await hashPassword("fake-password-123"),
   });
 
   testUserId = user.id;

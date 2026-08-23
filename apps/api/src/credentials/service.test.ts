@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { eq } from "drizzle-orm";
+import { hashPassword } from "../auth/password";
 import { setTestEncryptionKey } from "../crypto/test-helpers";
 import { db } from "../db/client";
 import { credentials, users } from "../db/schema";
@@ -23,11 +24,11 @@ beforeEach(async () => {
 
   const testUser = createUser({
     username: "test-user",
-    passwordHash: "fake-argon2id-hash-for-test",
+    passwordHash: await hashPassword("fake-password-123"),
   });
   const otherUser = createUser({
     username: "other-user",
-    passwordHash: "fake-argon2id-hash-for-other-test",
+    passwordHash: await hashPassword("other-fake-password-123"),
   });
 
   testUserId = testUser.id;
