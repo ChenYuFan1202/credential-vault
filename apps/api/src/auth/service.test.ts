@@ -3,7 +3,7 @@ import { db } from "../db/client";
 import { users } from "../db/schema";
 import { getUserByUsername } from "../users/service";
 import { verifyPassword } from "./password";
-import { loginUser, registerUser } from "./service";
+import { changePassword, loginUser, registerUser } from "./service";
 
 beforeEach(() => {
   db.delete(users).run();
@@ -172,5 +172,62 @@ describe("auth service", () => {
     }
 
     expect("passwordHash" in result.user).toBe(false);
+  });
+
+  test("changes a user's password", async () => {
+    const registerResult = await registerUser({
+      username: "demo-user",
+      password: "fake-password-123",
+    });
+
+    if (!registerResult.success) {
+      throw new Error("Expected registration to succeed.");
+    }
+
+    const changeResult = await changePassword(registerResult.user.id, {
+      currentPassword: "fake-password-123",
+      newPassword: "new-fake-password-123",
+    });
+    const oldPasswordLoginResult = await loginUser({
+      username: "demo-user",
+      password: "fake-password-123",
+    });
+    const newPasswordLoginResult = await loginUser({
+      username: "demo-user",
+      password: "new-fake-password-123",
+    });
+
+    expect(changeResult.success).toBe(true);
+    expect(oldPasswordLoginResult.success).toBe(false);
+    expect(newPasswordLoginResult.success).toBe(true);
+  });
+
+  test("rejects password changes with an incorrect current password", async () => {
+    const registerResult = await registerUser({
+      username: "demo-user",
+      password: "fake-password-123",
+    });
+
+    if (!registerResult.success) {
+      throw new Error("Expected registration to succeed.");
+    }
+
+    const changeResult = await changePassword(registerResult.user.id, {
+      currentPassword: "wrong-password",
+      newPassword: "new-fake-password-123",
+    });
+    const oldPasswordLoginResult = await loginUser({
+      username: "demo-user",
+      password: "fake-password-123",
+    });
+
+    expect(changeResult.success).toBe(false);
+
+    if (changeResult.success) {
+      throw new Error("Expected password change to fail.");
+    }
+
+    expect(changeResult.message).toBe("Current password is incorrect.");
+    expect(oldPasswordLoginResult.success).toBe(true);
   });
 });

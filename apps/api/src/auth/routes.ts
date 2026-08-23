@@ -8,10 +8,21 @@ import {
   deleteSessionByToken,
   getUserBySessionToken,
 } from "./session";
-import { loginUser, registerUser } from "./service";
-import { isLoginUserInput, isRegisterUserInput } from "./validation";
+import { changePassword, loginUser, registerUser } from "./service";
+import {
+  isChangePasswordInput,
+  isLoginUserInput,
+  isRegisterUserInput,
+} from "./validation";
 
 type ResponseHeaders = Record<string, string>;
+
+type CurrentUser = {
+  id: string;
+  username: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
 function jsonResponse(
   body: unknown,
@@ -43,6 +54,18 @@ function unauthorizedResponse(headers: ResponseHeaders): Response {
       headers,
     },
   );
+}
+
+function getCurrentUser(request: Request): CurrentUser | null {
+  const sessionToken = getSessionTokenFromCookieHeader(
+    request.headers.get("Cookie"),
+  );
+
+  if (sessionToken === null) {
+    return null;
+  }
+
+  return getUserBySessionToken(sessionToken);
 }
 
 export async function handleAuthRequest(
@@ -133,15 +156,7 @@ export async function handleAuthRequest(
   }
 
   if (url.pathname === "/auth/me" && request.method === "GET") {
-    const sessionToken = getSessionTokenFromCookieHeader(
-      request.headers.get("Cookie"),
-    );
-
-    if (sessionToken === null) {
-      return unauthorizedResponse(headers);
-    }
-
-    const user = getUserBySessionToken(sessionToken);
+    const user = getCurrentUser(request);
 
     if (user === null) {
       return unauthorizedResponse(headers);
@@ -155,6 +170,47 @@ export async function handleAuthRequest(
         headers,
       },
     );
+  }
+
+  if (url.pathname === "/auth/password" && request.method === "PATCH") {
+    const user = getCurrentUser(request);
+
+    if (user === null) {
+      return unauthorizedResponse(headers);
+    }
+
+    const body = await request.json();
+
+    if (!isChangePasswordInput(body)) {
+      return jsonResponse(
+        {
+          error: "Invalid password change input.",
+        },
+        {
+          status: 400,
+          headers,
+        },
+      );
+    }
+
+    const result = await changePassword(user.id, body);
+
+    if (!result.success) {
+      return jsonResponse(
+        {
+          error: result.message,
+        },
+        {
+          status: 400,
+          headers,
+        },
+      );
+    }
+
+    return new Response(null, {
+      status: 204,
+      headers,
+    });
   }
 
   if (url.pathname === "/auth/logout" && request.method === "POST") {

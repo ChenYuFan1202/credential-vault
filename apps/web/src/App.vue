@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import AuthForm from "./components/AuthForm.vue";
 import CredentialCreateForm from "./components/CredentialCreateForm.vue";
 import CredentialList from "./components/CredentialList.vue";
+import PasswordChangeForm from "./components/PasswordChangeForm.vue";
 
 type HealthResponse = {
   status: string;
@@ -23,6 +24,11 @@ type AuthResponse = {
 type AuthFormInput = {
   username: string;
   password: string;
+};
+
+type PasswordChangeFormInput = {
+  currentPassword: string;
+  newPassword: string;
 };
 
 type Credential = {
@@ -66,6 +72,9 @@ const authErrorMessage = ref("");
 const isSubmittingAuth = ref(false);
 const isLoggingOut = ref(false);
 const logoutErrorMessage = ref("");
+const isChangingPassword = ref(false);
+const changePasswordErrorMessage = ref("");
+const changePasswordSuccessMessage = ref("");
 const credentials = ref<Credential[]>([]);
 const isCredentialLoading = ref(true);
 const credentialErrorMessage = ref("");
@@ -278,6 +287,42 @@ async function logout(): Promise<void> {
     logoutErrorMessage.value = getUnknownErrorMessage(error);
   } finally {
     isLoggingOut.value = false;
+  }
+}
+
+async function changePassword(
+  input: PasswordChangeFormInput,
+  onSuccess: () => void,
+): Promise<void> {
+  isChangingPassword.value = true;
+  changePasswordErrorMessage.value = "";
+  changePasswordSuccessMessage.value = "";
+
+  try {
+    const response = await fetch("http://localhost:3000/auth/password", {
+      method: "PATCH",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        getApiErrorMessage(response, "Could not change password.", {
+          400: "Current password is incorrect, or new password is invalid.",
+          401: "Please log in again.",
+        }),
+      );
+    }
+
+    onSuccess();
+    changePasswordSuccessMessage.value = "Password changed.";
+  } catch (error: unknown) {
+    changePasswordErrorMessage.value = getUnknownErrorMessage(error);
+  } finally {
+    isChangingPassword.value = false;
   }
 }
 
@@ -541,6 +586,13 @@ onMounted(() => {
         :is-creating="isCreatingCredential"
         :error-message="createCredentialErrorMessage"
         @create="createCredential"
+      />
+
+      <PasswordChangeForm
+        :is-changing="isChangingPassword"
+        :error-message="changePasswordErrorMessage"
+        :success-message="changePasswordSuccessMessage"
+        @change-password="changePassword"
       />
 
       <CredentialList

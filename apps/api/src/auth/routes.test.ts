@@ -40,6 +40,22 @@ function createJsonRequest(pathname: string, method: string, body: unknown) {
   });
 }
 
+function createJsonRequestWithCookie(
+  pathname: string,
+  method: string,
+  body: unknown,
+  cookie: string,
+) {
+  return new Request(`http://localhost:3000${pathname}`, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: cookie,
+    },
+    body: JSON.stringify(body),
+  });
+}
+
 async function parseJsonResponse<TBody>(response: Response | null) {
   if (response === null) {
     throw new Error("Expected route response.");
@@ -200,6 +216,124 @@ describe("auth routes", () => {
 
     expect(response.status).toBe(200);
     expect(body.data.id).toBe(user.id);
+  });
+
+  test("handles PATCH /auth/password and keeps the session valid", async () => {
+    const user = createUser({
+      username: "demo-user",
+      passwordHash: await hashPassword("fake-password-123"),
+    });
+    const loginRequest = createJsonRequest("/auth/login", "POST", {
+      username: "demo-user",
+      password: "fake-password-123",
+    });
+    const loginUrl = new URL(loginRequest.url);
+    const loginResponse = await handleAuthRequest(loginRequest, loginUrl, headers);
+    const cookie = getSessionCookie(loginResponse as Response);
+    const request = createJsonRequestWithCookie(
+      "/auth/password",
+      "PATCH",
+      {
+        currentPassword: "fake-password-123",
+        newPassword: "new-fake-password-123",
+      },
+      cookie,
+    );
+    const url = new URL(request.url);
+
+    const response = await handleAuthRequest(request, url, headers);
+    const meRequest = new Request("http://localhost:3000/auth/me", {
+      headers: {
+        Cookie: cookie,
+      },
+    });
+    const meUrl = new URL(meRequest.url);
+    const { response: meResponse, body: meBody } =
+      await parseJsonResponse<UserResponseBody>(
+        await handleAuthRequest(meRequest, meUrl, headers),
+      );
+    const oldPasswordLoginRequest = createJsonRequest("/auth/login", "POST", {
+      username: "demo-user",
+      password: "fake-password-123",
+    });
+    const oldPasswordLoginUrl = new URL(oldPasswordLoginRequest.url);
+    const { response: oldPasswordLoginResponse } =
+      await parseJsonResponse<ErrorResponseBody>(
+        await handleAuthRequest(
+          oldPasswordLoginRequest,
+          oldPasswordLoginUrl,
+          headers,
+        ),
+      );
+    const newPasswordLoginRequest = createJsonRequest("/auth/login", "POST", {
+      username: "demo-user",
+      password: "new-fake-password-123",
+    });
+    const newPasswordLoginUrl = new URL(newPasswordLoginRequest.url);
+    const { response: newPasswordLoginResponse } =
+      await parseJsonResponse<UserResponseBody>(
+        await handleAuthRequest(
+          newPasswordLoginRequest,
+          newPasswordLoginUrl,
+          headers,
+        ),
+      );
+
+    if (response === null) {
+      throw new Error("Expected route response.");
+    }
+
+    expect(response.status).toBe(204);
+    expect(meResponse.status).toBe(200);
+    expect(meBody.data.id).toBe(user.id);
+    expect(oldPasswordLoginResponse.status).toBe(401);
+    expect(newPasswordLoginResponse.status).toBe(200);
+  });
+
+  test("rejects PATCH /auth/password without a session cookie", async () => {
+    const request = createJsonRequest("/auth/password", "PATCH", {
+      currentPassword: "fake-password-123",
+      newPassword: "new-fake-password-123",
+    });
+    const url = new URL(request.url);
+
+    const { response, body } = await parseJsonResponse<ErrorResponseBody>(
+      await handleAuthRequest(request, url, headers),
+    );
+
+    expect(response.status).toBe(401);
+    expect(body.error).toBe("Authentication is required.");
+  });
+
+  test("rejects PATCH /auth/password with an incorrect current password", async () => {
+    createUser({
+      username: "demo-user",
+      passwordHash: await hashPassword("fake-password-123"),
+    });
+    const loginRequest = createJsonRequest("/auth/login", "POST", {
+      username: "demo-user",
+      password: "fake-password-123",
+    });
+    const loginUrl = new URL(loginRequest.url);
+    const loginResponse = await handleAuthRequest(loginRequest, loginUrl, headers);
+    const cookie = getSessionCookie(loginResponse as Response);
+    const request = createJsonRequestWithCookie(
+      "/auth/password",
+      "PATCH",
+      {
+        currentPassword: "wrong-password",
+        newPassword: "new-fake-password-123",
+      },
+      cookie,
+    );
+    const url = new URL(request.url);
+
+    const { response, body } = await parseJsonResponse<ErrorResponseBody>(
+      await handleAuthRequest(request, url, headers),
+    );
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Current password is incorrect.");
   });
 
   test("rejects GET /auth/me without a session cookie", async () => {

@@ -22,6 +22,7 @@ const emit = defineEmits<{
 const mode = ref<AuthMode>("login");
 const username = ref("");
 const password = ref("");
+const isPasswordVisible = ref(false);
 
 const canSubmit = computed(() => {
   return username.value.trim() !== "" && password.value !== "";
@@ -48,6 +49,7 @@ function switchMode(): void {
   mode.value = mode.value === "login" ? "register" : "login";
   username.value = "";
   password.value = "";
+  isPasswordVisible.value = false;
   emit("clearError");
 }
 </script>
@@ -79,11 +81,20 @@ function switchMode(): void {
 
       <label>
         <span>Password</span>
-        <input
-          v-model="password"
-          type="password"
-          :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
-        />
+        <div class="password-input-row">
+          <input
+            v-model="password"
+            :type="isPasswordVisible ? 'text' : 'password'"
+            :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
+          />
+
+          <button
+            type="button"
+            @click="isPasswordVisible = !isPasswordVisible"
+          >
+            {{ isPasswordVisible ? "Hide" : "Show" }}
+          </button>
+        </div>
         <small v-if="mode === 'register'">
           At least 8 characters.
         </small>

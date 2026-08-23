@@ -8,6 +8,11 @@ export type LoginUserInput = {
   password: string;
 };
 
+export type ChangePasswordInput = {
+  currentPassword: string;
+  newPassword: string;
+};
+
 export function isRegisterUserInput(value: unknown): value is RegisterUserInput {
   if (typeof value !== "object" || value === null) {
     return false;
@@ -35,5 +40,22 @@ export function isLoginUserInput(value: unknown): value is LoginUserInput {
     input.username.trim() !== "" &&
     typeof input.password === "string" &&
     input.password !== ""
+  );
+}
+
+export function isChangePasswordInput(
+  value: unknown,
+): value is ChangePasswordInput {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const input = value as Record<string, unknown>;
+
+  return (
+    typeof input.currentPassword === "string" &&
+    input.currentPassword !== "" &&
+    typeof input.newPassword === "string" &&
+    input.newPassword.length >= 8
   );
 }

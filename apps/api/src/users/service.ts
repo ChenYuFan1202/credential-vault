@@ -31,3 +31,19 @@ export function getUserByUsername(username: string) {
     .where(eq(users.username, username.trim()))
     .get();
 }
+
+export function getUserById(id: string) {
+  return db.select().from(users).where(eq(users.id, id)).get();
+}
+
+export function updateUserPasswordHash(id: string, passwordHash: string) {
+  return db
+    .update(users)
+    .set({
+      passwordHash,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(eq(users.id, id))
+    .returning()
+    .get();
+}
