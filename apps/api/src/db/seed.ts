@@ -21,6 +21,12 @@ await createCredential(demoUser.id, {
   platform: "GitHub",
   username: "demo-user",
   password: "fake-password-123",
+  customFields: [
+    {
+      label: "Recovery Code",
+      value: "fake-recovery-code-123",
+    },
+  ],
 });
 
 await createCredential(demoUser.id, {
@@ -28,6 +34,16 @@ await createCredential(demoUser.id, {
   username: "demo-mail-user",
   password: "fake-password-456",
   notes: "Fake email account for practice.",
+  customFields: [
+    {
+      label: "Backup Email",
+      value: "fake-backup@example.test",
+    },
+    {
+      label: "PIN",
+      value: "123456",
+    },
+  ],
 });
 
 console.log("Database seeded.");

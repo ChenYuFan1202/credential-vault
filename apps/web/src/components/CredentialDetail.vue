@@ -7,6 +7,16 @@ type Credential = {
   username: string;
   password: string;
   notes: string | null;
+  customFields: CredentialCustomField[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+type CredentialCustomField = {
+  id: string;
+  label: string;
+  value: string;
+  sortOrder: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -16,9 +26,16 @@ type EditCredentialForm = {
   username: string;
   password: string;
   notes: string;
+  customFields: EditCredentialCustomFieldForm[];
+};
+
+type EditCredentialCustomFieldForm = {
+  label: string;
+  value: string;
 };
 
 type EditCredentialField = keyof EditCredentialForm;
+type EditCredentialTextField = Exclude<EditCredentialField, "customFields">;
 
 const props = defineProps<{
   credential: Credential | null;
@@ -36,11 +53,20 @@ const emit = defineEmits<{
   cancelEdit: [];
   update: [];
   close: [];
-  updateEditField: [field: EditCredentialField, value: string];
+  addCustomField: [];
+  removeCustomField: [index: number];
+  updateEditField: [field: EditCredentialTextField, value: string];
+  updateEditCustomField: [
+    index: number,
+    field: keyof EditCredentialCustomFieldForm,
+    value: string,
+  ];
 }>();
 
 const isPasswordVisible = ref(false);
 const isEditPasswordVisible = ref(false);
+const visibleCustomFieldIds = ref<string[]>([]);
+const visibleEditCustomFieldIndexes = ref<number[]>([]);
 const copyMessage = ref("");
 
 const displayedPassword = computed(() => {
@@ -58,6 +84,44 @@ async function copyText(value: string, message: string): Promise<void> {
   window.setTimeout(() => {
     copyMessage.value = "";
   }, 1600);
+}
+
+function isCustomFieldVisible(id: string): boolean {
+  return visibleCustomFieldIds.value.includes(id);
+}
+
+function toggleCustomFieldVisibility(id: string): void {
+  if (isCustomFieldVisible(id)) {
+    visibleCustomFieldIds.value = visibleCustomFieldIds.value.filter(
+      (visibleId) => visibleId !== id,
+    );
+    return;
+  }
+
+  visibleCustomFieldIds.value = [...visibleCustomFieldIds.value, id];
+}
+
+function getDisplayedCustomFieldValue(field: CredentialCustomField): string {
+  return isCustomFieldVisible(field.id) ? field.value : "••••••••";
+}
+
+function isEditCustomFieldVisible(index: number): boolean {
+  return visibleEditCustomFieldIndexes.value.includes(index);
+}
+
+function toggleEditCustomFieldVisibility(index: number): void {
+  if (isEditCustomFieldVisible(index)) {
+    visibleEditCustomFieldIndexes.value =
+      visibleEditCustomFieldIndexes.value.filter(
+        (visibleIndex) => visibleIndex !== index,
+      );
+    return;
+  }
+
+  visibleEditCustomFieldIndexes.value = [
+    ...visibleEditCustomFieldIndexes.value,
+    index,
+  ];
 }
 </script>
 
@@ -123,6 +187,61 @@ async function copyText(value: string, message: string): Promise<void> {
           />
         </label>
 
+        <div class="custom-field-section">
+          <div class="section-heading">
+            <div>
+              <span>Custom Fields</span>
+            </div>
+
+            <button type="button" @click="emit('addCustomField')">
+              Add Field
+            </button>
+          </div>
+
+          <div
+            v-for="(field, index) in editCredential.customFields"
+            :key="index"
+            class="custom-field-row"
+          >
+            <label>
+              <span>Label</span>
+              <input
+                :value="field.label"
+                type="text"
+                autocomplete="off"
+                @input="
+                  emit('updateEditCustomField', index, 'label', getFormValue($event))
+                "
+              />
+            </label>
+
+            <label>
+              <span>Value</span>
+              <div class="password-input-row">
+                <input
+                  :value="field.value"
+                  :type="isEditCustomFieldVisible(index) ? 'text' : 'password'"
+                  autocomplete="off"
+                  @input="
+                    emit('updateEditCustomField', index, 'value', getFormValue($event))
+                  "
+                />
+
+                <button
+                  type="button"
+                  @click="toggleEditCustomFieldVisibility(index)"
+                >
+                  {{ isEditCustomFieldVisible(index) ? "Hide" : "Show" }}
+                </button>
+              </div>
+            </label>
+
+            <button type="button" @click="emit('removeCustomField', index)">
+              Remove
+            </button>
+          </div>
+        </div>
+
         <p v-if="updateErrorMessage" class="error">
           {{ updateErrorMessage }}
         </p>
@@ -178,6 +297,38 @@ async function copyText(value: string, message: string): Promise<void> {
                     @click="copyText(credential.password, 'Password copied.')"
                   >
                     Copy Password
+                  </button>
+                </div>
+              </div>
+            </dd>
+          </div>
+        </dl>
+
+        <dl v-if="credential.customFields.length > 0">
+          <div
+            v-for="field in credential.customFields"
+            :key="field.id"
+          >
+            <dt>{{ field.label }}</dt>
+            <dd>
+              <div class="secret-row">
+                <span class="secret-value">
+                  {{ getDisplayedCustomFieldValue(field) }}
+                </span>
+
+                <div class="credential-actions">
+                  <button
+                    type="button"
+                    @click="toggleCustomFieldVisibility(field.id)"
+                  >
+                    {{ isCustomFieldVisible(field.id) ? "Hide" : "Show" }}
+                  </button>
+
+                  <button
+                    type="button"
+                    @click="copyText(field.value, `${field.label} copied.`)"
+                  >
+                    Copy
                   </button>
                 </div>
               </div>

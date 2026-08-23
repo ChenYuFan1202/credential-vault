@@ -16,6 +16,14 @@ type CredentialResponseBody = {
     username: string;
     password: string;
     notes: string | null;
+    customFields: {
+      id: string;
+      label: string;
+      value: string;
+      sortOrder: number;
+      createdAt: string;
+      updatedAt: string;
+    }[];
     createdAt: string;
     updatedAt: string;
   };
@@ -134,11 +142,23 @@ describe("credential routes", () => {
       username: "demo-user",
       password: "fake-password-123",
       notes: "Fake notes.",
+      customFields: [
+        {
+          label: "PIN",
+          value: "123456",
+        },
+      ],
     });
     await createCredential(otherUserId, {
       platform: "Other Platform",
       username: "other-user",
       password: "other-fake-password-123",
+      customFields: [
+        {
+          label: "Other PIN",
+          value: "654321",
+        },
+      ],
     });
     const request = createCredentialRequest("/credentials/export.txt");
     const url = new URL(request.url);
@@ -158,7 +178,10 @@ describe("credential routes", () => {
     expect(text).toContain("Username: demo-user");
     expect(text).toContain("Password: fake-password-123");
     expect(text).toContain("Notes: Fake notes.");
+    expect(text).toContain("Custom Fields:");
+    expect(text).toContain("- PIN: 123456");
     expect(text).not.toContain("Other Platform");
+    expect(text).not.toContain("Other PIN");
   });
 
   test("handles POST /credentials", async () => {
@@ -176,6 +199,30 @@ describe("credential routes", () => {
     expect(response.status).toBe(201);
     expect(body.data.id).toBeString();
     expect(body.data.platform).toBe("GitHub");
+  });
+
+  test("handles POST /credentials with custom fields", async () => {
+    const request = createJsonRequest("/credentials", "POST", {
+      platform: "GitHub",
+      username: "demo-user",
+      password: "fake-password-123",
+      customFields: [
+        {
+          label: "PIN",
+          value: "123456",
+        },
+      ],
+    });
+    const url = new URL(request.url);
+
+    const { response, body } = await parseJsonResponse<CredentialResponseBody>(
+      await handleCredentialRequest(request, url, headers),
+    );
+
+    expect(response.status).toBe(201);
+    expect(body.data.customFields).toHaveLength(1);
+    expect(body.data.customFields[0]?.label).toBe("PIN");
+    expect(body.data.customFields[0]?.value).toBe("123456");
   });
 
   test("handles POST /credentials with a short stored password", async () => {
@@ -246,6 +293,39 @@ describe("credential routes", () => {
 
     expect(response.status).toBe(200);
     expect(body.data.platform).toBe("GitHub Updated");
+  });
+
+  test("handles PATCH /credentials/:id with custom fields", async () => {
+    const credential = await createCredential(testUserId, {
+      platform: "GitHub",
+      username: "demo-user",
+      password: "fake-password-123",
+      customFields: [
+        {
+          label: "PIN",
+          value: "123456",
+        },
+      ],
+    });
+
+    const request = createJsonRequest(`/credentials/${credential.id}`, "PATCH", {
+      customFields: [
+        {
+          label: "Recovery Code",
+          value: "fake-code-123",
+        },
+      ],
+    });
+    const url = new URL(request.url);
+
+    const { response, body } = await parseJsonResponse<CredentialResponseBody>(
+      await handleCredentialRequest(request, url, headers),
+    );
+
+    expect(response.status).toBe(200);
+    expect(body.data.customFields).toHaveLength(1);
+    expect(body.data.customFields[0]?.label).toBe("Recovery Code");
+    expect(body.data.customFields[0]?.value).toBe("fake-code-123");
   });
 
   test("handles PATCH /credentials/:id with a short stored password", async () => {

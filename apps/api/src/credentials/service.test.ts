@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { hashPassword } from "../auth/password";
 import { setTestEncryptionKey } from "../crypto/test-helpers";
 import { db } from "../db/client";
-import { credentials, users } from "../db/schema";
+import { credentialCustomFields, credentials, users } from "../db/schema";
 import { createUser } from "../users/service";
 import {
   createCredential,
@@ -48,6 +48,33 @@ describe("credential service", () => {
     expect(credential.username).toBe("demo-user");
     expect(credential.password).toBe("fake-password-123");
     expect(credential.notes).toBeNull();
+    expect(credential.customFields).toEqual([]);
+  });
+
+  test("creates a credential with custom fields", async () => {
+    const credential = await createCredential(testUserId, {
+      platform: "GitHub",
+      username: "demo-user",
+      password: "fake-password-123",
+      customFields: [
+        {
+          label: "PIN",
+          value: "123456",
+        },
+        {
+          label: "Recovery Code",
+          value: "fake-code-123",
+        },
+      ],
+    });
+
+    expect(credential.customFields).toHaveLength(2);
+    expect(credential.customFields[0]?.label).toBe("PIN");
+    expect(credential.customFields[0]?.value).toBe("123456");
+    expect(credential.customFields[0]?.sortOrder).toBe(0);
+    expect(credential.customFields[1]?.label).toBe("Recovery Code");
+    expect(credential.customFields[1]?.value).toBe("fake-code-123");
+    expect(credential.customFields[1]?.sortOrder).toBe(1);
   });
 
   test("does not store sensitive credential fields as plaintext", async () => {
@@ -56,6 +83,12 @@ describe("credential service", () => {
       username: "demo-user",
       password: "fake-password-123",
       notes: "Fake notes.",
+      customFields: [
+        {
+          label: "PIN",
+          value: "123456",
+        },
+      ],
     });
 
     const storedCredential = db
@@ -68,6 +101,16 @@ describe("credential service", () => {
       throw new Error("Expected stored credential.");
     }
 
+    const storedCustomField = db
+      .select()
+      .from(credentialCustomFields)
+      .where(eq(credentialCustomFields.credentialId, credential.id))
+      .get();
+
+    if (storedCustomField === undefined) {
+      throw new Error("Expected stored custom field.");
+    }
+
     expect(storedCredential.platform).toBe("GitHub");
     expect(storedCredential.usernameEncrypted).not.toBe("demo-user");
     expect(storedCredential.passwordEncrypted).not.toBe("fake-password-123");
@@ -76,6 +119,11 @@ describe("credential service", () => {
     expect(storedCredential.passwordNonce).toBeString();
     expect(storedCredential.notesNonce).toBeString();
     expect(storedCredential.cryptoVersion).toBe(1);
+    expect(storedCustomField.labelEncrypted).not.toBe("PIN");
+    expect(storedCustomField.valueEncrypted).not.toBe("123456");
+    expect(storedCustomField.labelNonce).toBeString();
+    expect(storedCustomField.valueNonce).toBeString();
+    expect(storedCustomField.cryptoVersion).toBe(1);
   });
 
   test("lists credentials", async () => {
@@ -127,18 +175,62 @@ describe("credential service", () => {
     expect(updatedCredential?.username).toBe("demo-user");
   });
 
+  test("updates custom fields by replacing the field list", async () => {
+    const credential = await createCredential(testUserId, {
+      platform: "GitHub",
+      username: "demo-user",
+      password: "fake-password-123",
+      customFields: [
+        {
+          label: "PIN",
+          value: "123456",
+        },
+        {
+          label: "Recovery Code",
+          value: "fake-code-123",
+        },
+      ],
+    });
+
+    const updatedCredential = await updateCredential(testUserId, credential.id, {
+      customFields: [
+        {
+          label: "Security Question",
+          value: "fake-answer",
+        },
+      ],
+    });
+
+    expect(updatedCredential?.customFields).toHaveLength(1);
+    expect(updatedCredential?.customFields[0]?.label).toBe("Security Question");
+    expect(updatedCredential?.customFields[0]?.value).toBe("fake-answer");
+    expect(updatedCredential?.customFields[0]?.sortOrder).toBe(0);
+  });
+
   test("deletes a credential", async () => {
     const credential = await createCredential(testUserId, {
       platform: "GitHub",
       username: "demo-user",
       password: "fake-password-123",
+      customFields: [
+        {
+          label: "PIN",
+          value: "123456",
+        },
+      ],
     });
 
     const deleted = deleteCredential(testUserId, credential.id);
     const foundCredential = await getCredentialById(testUserId, credential.id);
+    const storedCustomFields = db
+      .select()
+      .from(credentialCustomFields)
+      .where(eq(credentialCustomFields.credentialId, credential.id))
+      .all();
 
     expect(deleted).toBe(true);
     expect(foundCredential).toBeUndefined();
+    expect(storedCustomFields).toHaveLength(0);
   });
 
   test("does not return another user's credential", async () => {

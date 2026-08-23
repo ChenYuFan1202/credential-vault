@@ -10,6 +10,16 @@ type Credential = {
   username: string;
   password: string;
   notes: string | null;
+  customFields: CredentialCustomField[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+type CredentialCustomField = {
+  id: string;
+  label: string;
+  value: string;
+  sortOrder: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -23,6 +33,12 @@ type EditCredentialForm = {
   username: string;
   password: string;
   notes: string;
+  customFields: EditCredentialCustomFieldForm[];
+};
+
+type EditCredentialCustomFieldForm = {
+  label: string;
+  value: string;
 };
 
 const route = useRoute();
@@ -37,6 +53,7 @@ const editCredential = ref<EditCredentialForm>({
   username: "",
   password: "",
   notes: "",
+  customFields: [],
 });
 const isUpdatingCredential = ref(false);
 const updateCredentialErrorMessage = ref("");
@@ -96,6 +113,10 @@ function startEditingCredential(): void {
     username: credential.value.username,
     password: credential.value.password,
     notes: credential.value.notes ?? "",
+    customFields: credential.value.customFields.map((field) => ({
+      label: field.label,
+      value: field.value,
+    })),
   };
 
   updateCredentialErrorMessage.value = "";
@@ -108,13 +129,50 @@ function cancelEditingCredential(): void {
 }
 
 function updateEditCredentialField(
-  field: keyof EditCredentialForm,
+  field: Exclude<keyof EditCredentialForm, "customFields">,
   value: string,
 ): void {
   editCredential.value = {
     ...editCredential.value,
     [field]: value,
   };
+}
+
+function addEditCustomField(): void {
+  editCredential.value.customFields.push({
+    label: "",
+    value: "",
+  });
+}
+
+function removeEditCustomField(index: number): void {
+  editCredential.value.customFields.splice(index, 1);
+}
+
+function updateEditCustomField(
+  index: number,
+  field: keyof EditCredentialCustomFieldForm,
+  value: string,
+): void {
+  const customField = editCredential.value.customFields[index];
+
+  if (customField === undefined) {
+    return;
+  }
+
+  editCredential.value.customFields[index] = {
+    ...customField,
+    [field]: value,
+  };
+}
+
+function getSubmittedCustomFields(): EditCredentialCustomFieldForm[] {
+  return editCredential.value.customFields
+    .map((field) => ({
+      label: field.label.trim(),
+      value: field.value,
+    }))
+    .filter((field) => field.label !== "" && field.value !== "");
 }
 
 async function updateCredential(): Promise<void> {
@@ -135,6 +193,7 @@ async function updateCredential(): Promise<void> {
           username: editCredential.value.username,
           password: editCredential.value.password,
           notes: editCredential.value.notes || null,
+          customFields: getSubmittedCustomFields(),
         }),
       },
     );
@@ -168,6 +227,9 @@ onMounted(() => {
       <div>
         <p class="eyebrow">Credential Detail</p>
         <h2>{{ credential?.platform ?? "Credential" }}</h2>
+        <p v-if="credential?.notes" class="empty-message">
+          {{ credential.notes }}
+        </p>
       </div>
     </div>
 
@@ -184,7 +246,10 @@ onMounted(() => {
       @cancel-edit="cancelEditingCredential"
       @update="updateCredential"
       @close="router.push('/credentials')"
+      @add-custom-field="addEditCustomField"
+      @remove-custom-field="removeEditCustomField"
       @update-edit-field="updateEditCredentialField"
+      @update-edit-custom-field="updateEditCustomField"
     />
   </section>
 </template>

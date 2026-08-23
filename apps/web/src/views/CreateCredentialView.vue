@@ -9,6 +9,12 @@ type CreateCredentialForm = {
   username: string;
   password: string;
   notes: string;
+  customFields: CredentialCustomFieldForm[];
+};
+
+type CredentialCustomFieldForm = {
+  label: string;
+  value: string;
 };
 
 const router = useRouter();
@@ -35,6 +41,8 @@ async function createCredential(
         username: input.username,
         password: input.password,
         notes: input.notes || undefined,
+        customFields:
+          input.customFields.length === 0 ? undefined : input.customFields,
       }),
     });
 

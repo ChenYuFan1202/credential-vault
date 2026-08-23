@@ -224,8 +224,18 @@ watch(
       <h1>Credential Vault</h1>
 
       <nav v-if="currentUser" class="app-nav" aria-label="Primary navigation">
-        <RouterLink to="/credentials">Credentials</RouterLink>
-        <RouterLink to="/account">Account</RouterLink>
+        <RouterLink
+          to="/credentials"
+          :class="{ 'router-link-active': route.path.startsWith('/credentials') }"
+        >
+          Credentials
+        </RouterLink>
+        <RouterLink
+          to="/account"
+          :class="{ 'router-link-active': route.path === '/account' }"
+        >
+          Account
+        </RouterLink>
         <button type="button" :disabled="isLoggingOut" @click="logout">
           {{ isLoggingOut ? "Logging out..." : "Logout" }}
         </button>

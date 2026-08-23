@@ -6,6 +6,12 @@ type CreateCredentialForm = {
   username: string;
   password: string;
   notes: string;
+  customFields: CredentialCustomFieldForm[];
+};
+
+type CredentialCustomFieldForm = {
+  label: string;
+  value: string;
 };
 
 defineProps<{
@@ -22,6 +28,7 @@ const newCredential = ref<CreateCredentialForm>({
   username: "",
   password: "",
   notes: "",
+  customFields: [],
 });
 const isPasswordVisible = ref(false);
 
@@ -39,7 +46,28 @@ function resetForm(): void {
     username: "",
     password: "",
     notes: "",
+    customFields: [],
   };
+}
+
+function addCustomField(): void {
+  newCredential.value.customFields.push({
+    label: "",
+    value: "",
+  });
+}
+
+function removeCustomField(index: number): void {
+  newCredential.value.customFields.splice(index, 1);
+}
+
+function getSubmittedCustomFields(): CredentialCustomFieldForm[] {
+  return newCredential.value.customFields
+    .map((field) => ({
+      label: field.label.trim(),
+      value: field.value,
+    }))
+    .filter((field) => field.label !== "" && field.value !== "");
 }
 
 function submitForm(): void {
@@ -47,7 +75,14 @@ function submitForm(): void {
     return;
   }
 
-  emit("create", { ...newCredential.value }, resetForm);
+  emit(
+    "create",
+    {
+      ...newCredential.value,
+      customFields: getSubmittedCustomFields(),
+    },
+    resetForm,
+  );
 }
 </script>
 
@@ -97,6 +132,38 @@ function submitForm(): void {
         <span>Notes</span>
         <textarea v-model="newCredential.notes" rows="3" />
       </label>
+
+      <div class="custom-field-section">
+        <div class="section-heading">
+          <div>
+            <span>Custom Fields</span>
+          </div>
+
+          <button type="button" @click="addCustomField">
+            Add Field
+          </button>
+        </div>
+
+        <div
+          v-for="(field, index) in newCredential.customFields"
+          :key="index"
+          class="custom-field-row"
+        >
+          <label>
+            <span>Label</span>
+            <input v-model="field.label" type="text" autocomplete="off" />
+          </label>
+
+          <label>
+            <span>Value</span>
+            <input v-model="field.value" type="text" autocomplete="off" />
+          </label>
+
+          <button type="button" @click="removeCustomField(index)">
+            Remove
+          </button>
+        </div>
+      </div>
 
       <p v-if="errorMessage" class="error">
         {{ errorMessage }}

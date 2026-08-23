@@ -34,3 +34,18 @@ export const credentials = sqliteTable("credentials", {
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });
+
+export const credentialCustomFields = sqliteTable("credential_custom_fields", {
+  id: text("id").primaryKey(),
+  credentialId: text("credential_id")
+    .notNull()
+    .references(() => credentials.id),
+  labelEncrypted: text("label_encrypted").notNull(),
+  labelNonce: text("label_nonce").notNull(),
+  valueEncrypted: text("value_encrypted").notNull(),
+  valueNonce: text("value_nonce").notNull(),
+  cryptoVersion: integer("crypto_version").notNull(),
+  sortOrder: integer("sort_order").notNull(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});

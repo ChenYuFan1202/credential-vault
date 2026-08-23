@@ -111,14 +111,25 @@ export async function handleCredentialRequest(
 
   if (url.pathname === "/credentials/export.txt" && request.method === "GET") {
     const rows = await listCredentials(currentUser.id);
-    const sections = rows.map((credential) =>
-      [
+    const sections = rows.map((credential) => {
+      const lines = [
         `Platform: ${credential.platform}`,
         `Username: ${credential.username}`,
         `Password: ${credential.password}`,
         `Notes: ${credential.notes ?? ""}`,
-      ].join("\n"),
-    );
+      ];
+
+      if (credential.customFields.length > 0) {
+        lines.push("Custom Fields:");
+        lines.push(
+          ...credential.customFields.map(
+            (field) => `- ${field.label}: ${field.value}`,
+          ),
+        );
+      }
+
+      return lines.join("\n");
+    });
     const text = [
       "Credential Vault Export",
       "",

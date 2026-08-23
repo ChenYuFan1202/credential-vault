@@ -5,13 +5,24 @@ import {
   type EncryptedValue,
 } from "../crypto/service";
 import { db } from "../db/client";
-import { credentials } from "../db/schema";
+import { credentialCustomFields, credentials } from "../db/schema";
 import type {
+  CredentialCustomFieldInput,
   CreateCredentialInput,
   UpdateCredentialInput,
 } from "./validation";
 
 type CredentialRow = typeof credentials.$inferSelect;
+type CredentialCustomFieldRow = typeof credentialCustomFields.$inferSelect;
+
+export type CredentialCustomField = {
+  id: string;
+  label: string;
+  value: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+};
 
 export type Credential = {
   id: string;
@@ -20,6 +31,7 @@ export type Credential = {
   username: string;
   password: string;
   notes: string | null;
+  customFields: CredentialCustomField[];
   createdAt: string;
   updatedAt: string;
 };
@@ -68,6 +80,8 @@ async function decryptCredential(row: CredentialRow): Promise<Credential> {
           ),
         );
 
+  const customFields = await listCustomFields(row.id);
+
   return {
     id: row.id,
     userId: row.userId,
@@ -75,9 +89,95 @@ async function decryptCredential(row: CredentialRow): Promise<Credential> {
     username,
     password,
     notes,
+    customFields,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
+}
+
+async function decryptCustomField(
+  row: CredentialCustomFieldRow,
+): Promise<CredentialCustomField> {
+  const label = await decryptString(
+    encryptedValueFromColumns(
+      row.labelEncrypted,
+      row.labelNonce,
+      row.cryptoVersion,
+    ),
+  );
+  const value = await decryptString(
+    encryptedValueFromColumns(
+      row.valueEncrypted,
+      row.valueNonce,
+      row.cryptoVersion,
+    ),
+  );
+
+  return {
+    id: row.id,
+    label,
+    value,
+    sortOrder: row.sortOrder,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+async function listCustomFields(
+  credentialId: string,
+): Promise<CredentialCustomField[]> {
+  const rows = db
+    .select()
+    .from(credentialCustomFields)
+    .where(eq(credentialCustomFields.credentialId, credentialId))
+    .orderBy(credentialCustomFields.sortOrder)
+    .all();
+
+  return Promise.all(rows.map((row) => decryptCustomField(row)));
+}
+
+async function createCustomFields(
+  credentialId: string,
+  input: CredentialCustomFieldInput[] | undefined,
+  timestamp: string,
+): Promise<void> {
+  if (input === undefined || input.length === 0) {
+    return;
+  }
+
+  const rows = await Promise.all(
+    input.map(async (field, index) => {
+      const encryptedLabel = await encryptString(field.label.trim());
+      const encryptedValue = await encryptString(field.value);
+
+      return {
+        id: crypto.randomUUID(),
+        credentialId,
+        labelEncrypted: encryptedLabel.ciphertext,
+        labelNonce: encryptedLabel.nonce,
+        valueEncrypted: encryptedValue.ciphertext,
+        valueNonce: encryptedValue.nonce,
+        cryptoVersion: credentialCryptoVersion,
+        sortOrder: index,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+    }),
+  );
+
+  db.insert(credentialCustomFields).values(rows).run();
+}
+
+async function replaceCustomFields(
+  credentialId: string,
+  input: CredentialCustomFieldInput[],
+  timestamp: string,
+): Promise<void> {
+  db.delete(credentialCustomFields)
+    .where(eq(credentialCustomFields.credentialId, credentialId))
+    .run();
+
+  await createCustomFields(credentialId, input, timestamp);
 }
 
 export async function listCredentials(userId: string): Promise<Credential[]> {
@@ -119,6 +219,8 @@ export async function createCredential(
     .returning()
     .get();
 
+  await createCustomFields(credential.id, input.customFields, now);
+
   return decryptCredential(credential);
 }
 
@@ -140,8 +242,9 @@ export async function updateCredential(
   id: string,
   input: UpdateCredentialInput,
 ): Promise<Credential | undefined> {
+  const now = new Date().toISOString();
   const values: Partial<typeof credentials.$inferInsert> = {
-    updatedAt: new Date().toISOString(),
+    updatedAt: now,
   };
 
   if (input.platform !== undefined) {
@@ -186,10 +289,28 @@ export async function updateCredential(
     .returning()
     .get();
 
+  if (credential !== undefined && input.customFields !== undefined) {
+    await replaceCustomFields(credential.id, input.customFields, now);
+  }
+
   return credential === undefined ? undefined : decryptCredential(credential);
 }
 
 export function deleteCredential(userId: string, id: string): boolean {
+  const credential = db
+    .select()
+    .from(credentials)
+    .where(and(eq(credentials.id, id), eq(credentials.userId, userId)))
+    .get();
+
+  if (credential === undefined) {
+    return false;
+  }
+
+  db.delete(credentialCustomFields)
+    .where(eq(credentialCustomFields.credentialId, id))
+    .run();
+
   const deletedCredential = db
     .delete(credentials)
     .where(and(eq(credentials.id, id), eq(credentials.userId, userId)))
