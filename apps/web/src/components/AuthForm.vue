@@ -27,6 +27,10 @@ const password = ref("");
 const isPasswordVisible = ref(false);
 
 const canSubmit = computed(() => {
+  if (props.mode === "register") {
+    return username.value.trim().length >= 3 && password.value.length >= 8;
+  }
+
   return username.value.trim() !== "" && password.value !== "";
 });
 
