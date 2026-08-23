@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import AccountView from "./views/AccountView.vue";
 import AuthView from "./views/AuthView.vue";
 import CreateCredentialView from "./views/CreateCredentialView.vue";
+import CredentialDetailView from "./views/CredentialDetailView.vue";
 import CredentialsView from "./views/CredentialsView.vue";
 
 export const router = createRouter({
@@ -26,6 +27,10 @@ export const router = createRouter({
     {
       path: "/credentials/new",
       component: CreateCredentialView,
+    },
+    {
+      path: "/credentials/:id",
+      component: CredentialDetailView,
     },
     {
       path: "/account",

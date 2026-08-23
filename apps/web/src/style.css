@@ -305,13 +305,15 @@ p {
 
 .credential-detail dl > div {
   display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: 12px;
+  grid-template-columns: 120px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
 }
 
 .credential-detail dt {
   color: #4b647f;
   font-weight: 700;
+  line-height: 40px;
 }
 
 .credential-detail dd {
@@ -323,6 +325,7 @@ p {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
+  min-height: 40px;
 }
 
 .secret-value {

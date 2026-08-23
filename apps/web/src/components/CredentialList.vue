@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import ConfirmDialog from "./ConfirmDialog.vue";
-import CredentialDetail from "./CredentialDetail.vue";
 
 type Credential = {
   id: string;
@@ -13,40 +12,16 @@ type Credential = {
   updatedAt: string;
 };
 
-type EditCredentialForm = {
-  platform: string;
-  username: string;
-  password: string;
-  notes: string;
-};
-
-type EditCredentialField = keyof EditCredentialForm;
-
 const props = defineProps<{
   credentials: Credential[];
   isLoading: boolean;
   errorMessage: string;
   deletingCredentialId: string | null;
   deleteErrorMessage: string;
-  selectedCredentialId: string | null;
-  selectedCredential: Credential | null;
-  isLoadingSelectedCredential: boolean;
-  selectedCredentialErrorMessage: string;
-  isEditingCredential: boolean;
-  editCredential: EditCredentialForm;
-  canUpdateCredential: boolean;
-  isUpdatingCredential: boolean;
-  updateCredentialErrorMessage: string;
 }>();
 
 const emit = defineEmits<{
-  view: [id: string];
   delete: [id: string];
-  startEdit: [];
-  cancelEdit: [];
-  update: [];
-  closeDetail: [];
-  updateEditField: [field: EditCredentialField, value: string];
 }>();
 
 const credentialPendingDeleteId = ref<string | null>(null);
@@ -143,13 +118,9 @@ function confirmDeleteCredential(): void {
             </div>
 
             <div class="credential-actions">
-              <button
-                v-if="selectedCredentialId !== credential.id"
-                type="button"
-                @click="emit('view', credential.id)"
-              >
+              <RouterLink class="button-link" :to="`/credentials/${credential.id}`">
                 View
-              </button>
+              </RouterLink>
 
               <button
                 type="button"
@@ -160,25 +131,6 @@ function confirmDeleteCredential(): void {
               </button>
             </div>
           </div>
-
-          <CredentialDetail
-            v-if="selectedCredentialId === credential.id"
-            :credential="selectedCredential"
-            :is-loading="isLoadingSelectedCredential"
-            :error-message="selectedCredentialErrorMessage"
-            :is-editing="isEditingCredential"
-            :edit-credential="editCredential"
-            :can-update="canUpdateCredential"
-            :is-updating="isUpdatingCredential"
-            :update-error-message="updateCredentialErrorMessage"
-            @start-edit="emit('startEdit')"
-            @cancel-edit="emit('cancelEdit')"
-            @update="emit('update')"
-            @close="emit('closeDetail')"
-            @update-edit-field="
-              (field, value) => emit('updateEditField', field, value)
-            "
-          />
         </li>
       </ul>
     </template>
