@@ -19,9 +19,12 @@ defineProps<{
   currentUser: CurrentUser;
 }>();
 
+const emit = defineEmits<{
+  passwordChanged: [];
+}>();
+
 const isChangingPassword = ref(false);
 const changePasswordErrorMessage = ref("");
-const changePasswordSuccessMessage = ref("");
 
 async function changePassword(
   input: PasswordChangeFormInput,
@@ -29,7 +32,6 @@ async function changePassword(
 ): Promise<void> {
   isChangingPassword.value = true;
   changePasswordErrorMessage.value = "";
-  changePasswordSuccessMessage.value = "";
 
   try {
     const response = await fetch("http://localhost:3000/auth/password", {
@@ -51,7 +53,7 @@ async function changePassword(
     }
 
     onSuccess();
-    changePasswordSuccessMessage.value = "Password changed.";
+    emit("passwordChanged");
   } catch (error: unknown) {
     changePasswordErrorMessage.value = getUnknownErrorMessage(error);
   } finally {
@@ -71,7 +73,6 @@ async function changePassword(
   <PasswordChangeForm
     :is-changing="isChangingPassword"
     :error-message="changePasswordErrorMessage"
-    :success-message="changePasswordSuccessMessage"
     @change-password="changePassword"
   />
 </template>

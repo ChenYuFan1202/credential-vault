@@ -218,8 +218,8 @@ describe("auth routes", () => {
     expect(body.data.id).toBe(user.id);
   });
 
-  test("handles PATCH /auth/password and keeps the session valid", async () => {
-    const user = createUser({
+  test("handles PATCH /auth/password and expires the current session", async () => {
+    createUser({
       username: "demo-user",
       passwordHash: await hashPassword("fake-password-123"),
     });
@@ -230,6 +230,12 @@ describe("auth routes", () => {
     const loginUrl = new URL(loginRequest.url);
     const loginResponse = await handleAuthRequest(loginRequest, loginUrl, headers);
     const cookie = getSessionCookie(loginResponse as Response);
+    const sessionToken = cookie.split(";")[0]?.split("=")[1];
+
+    if (sessionToken === undefined) {
+      throw new Error("Expected raw session token in cookie.");
+    }
+
     const request = createJsonRequestWithCookie(
       "/auth/password",
       "PATCH",
@@ -242,16 +248,20 @@ describe("auth routes", () => {
     const url = new URL(request.url);
 
     const response = await handleAuthRequest(request, url, headers);
+    const storedSession = db
+      .select()
+      .from(sessions)
+      .where(eq(sessions.sessionTokenHash, hashSessionToken(sessionToken)))
+      .get();
     const meRequest = new Request("http://localhost:3000/auth/me", {
       headers: {
         Cookie: cookie,
       },
     });
     const meUrl = new URL(meRequest.url);
-    const { response: meResponse, body: meBody } =
-      await parseJsonResponse<UserResponseBody>(
-        await handleAuthRequest(meRequest, meUrl, headers),
-      );
+    const { response: meResponse } = await parseJsonResponse<ErrorResponseBody>(
+      await handleAuthRequest(meRequest, meUrl, headers),
+    );
     const oldPasswordLoginRequest = createJsonRequest("/auth/login", "POST", {
       username: "demo-user",
       password: "fake-password-123",
@@ -284,8 +294,9 @@ describe("auth routes", () => {
     }
 
     expect(response.status).toBe(204);
-    expect(meResponse.status).toBe(200);
-    expect(meBody.data.id).toBe(user.id);
+    expect(response.headers.get("Set-Cookie")).toContain("Max-Age=0");
+    expect(storedSession).toBeUndefined();
+    expect(meResponse.status).toBe(401);
     expect(oldPasswordLoginResponse.status).toBe(401);
     expect(newPasswordLoginResponse.status).toBe(200);
   });

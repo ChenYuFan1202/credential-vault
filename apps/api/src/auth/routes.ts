@@ -173,7 +173,15 @@ export async function handleAuthRequest(
   }
 
   if (url.pathname === "/auth/password" && request.method === "PATCH") {
-    const user = getCurrentUser(request);
+    const sessionToken = getSessionTokenFromCookieHeader(
+      request.headers.get("Cookie"),
+    );
+
+    if (sessionToken === null) {
+      return unauthorizedResponse(headers);
+    }
+
+    const user = getUserBySessionToken(sessionToken);
 
     if (user === null) {
       return unauthorizedResponse(headers);
@@ -207,9 +215,14 @@ export async function handleAuthRequest(
       );
     }
 
+    deleteSessionByToken(sessionToken);
+
     return new Response(null, {
       status: 204,
-      headers,
+      headers: {
+        ...headers,
+        "Set-Cookie": createExpiredSessionCookie(),
+      },
     });
   }
 

@@ -12,6 +12,7 @@ const props = defineProps<{
   mode: AuthMode;
   isSubmitting: boolean;
   errorMessage: string;
+  noticeMessage: string;
 }>();
 
 const emit = defineEmits<{
@@ -113,6 +114,10 @@ watch(
 
       <p v-if="errorMessage" class="error">
         {{ errorMessage }}
+      </p>
+
+      <p v-if="noticeMessage" class="success-message">
+        {{ noticeMessage }}
       </p>
 
       <button type="submit" :disabled="!canSubmit || isSubmitting">

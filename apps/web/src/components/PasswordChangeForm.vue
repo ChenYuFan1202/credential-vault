@@ -6,11 +6,13 @@ type PasswordChangeFormInput = {
   newPassword: string;
 };
 
-defineProps<{
+withDefaults(defineProps<{
   isChanging: boolean;
   errorMessage: string;
-  successMessage: string;
-}>();
+  successMessage?: string;
+}>(), {
+  successMessage: "",
+});
 
 const emit = defineEmits<{
   changePassword: [input: PasswordChangeFormInput, onSuccess: () => void];

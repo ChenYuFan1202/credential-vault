@@ -12,6 +12,7 @@ defineProps<{
   mode: AuthMode;
   isSubmitting: boolean;
   errorMessage: string;
+  noticeMessage: string;
 }>();
 
 const emit = defineEmits<{
@@ -27,6 +28,7 @@ const emit = defineEmits<{
     :mode="mode"
     :is-submitting="isSubmitting"
     :error-message="errorMessage"
+    :notice-message="noticeMessage"
     @login="(input) => emit('login', input)"
     @register="(input) => emit('register', input)"
     @clear-error="emit('clearError')"

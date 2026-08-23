@@ -25,6 +25,7 @@ const route = useRoute();
 const currentUser = ref<CurrentUser | null>(null);
 const isAuthLoading = ref(true);
 const authErrorMessage = ref("");
+const authNoticeMessage = ref("");
 const isSubmittingAuth = ref(false);
 const isLoggingOut = ref(false);
 const logoutErrorMessage = ref("");
@@ -102,6 +103,7 @@ async function loadCurrentUser(): Promise<void> {
 async function login(input: AuthFormInput): Promise<void> {
   isSubmittingAuth.value = true;
   authErrorMessage.value = "";
+  authNoticeMessage.value = "";
 
   try {
     const response = await fetch("http://localhost:3000/auth/login", {
@@ -135,6 +137,7 @@ async function login(input: AuthFormInput): Promise<void> {
 async function register(input: AuthFormInput): Promise<void> {
   isSubmittingAuth.value = true;
   authErrorMessage.value = "";
+  authNoticeMessage.value = "";
 
   try {
     const response = await fetch("http://localhost:3000/auth/register", {
@@ -188,11 +191,18 @@ async function logout(): Promise<void> {
 
 function clearAuthError(): void {
   authErrorMessage.value = "";
+  authNoticeMessage.value = "";
 }
 
 async function switchAuthMode(): Promise<void> {
   clearAuthError();
   await router.push(authMode.value === "login" ? "/register" : "/login");
+}
+
+async function handlePasswordChanged(): Promise<void> {
+  currentUser.value = null;
+  authNoticeMessage.value = "Password changed. Please log in again.";
+  await router.replace("/login");
 }
 
 onMounted(() => {
@@ -236,6 +246,7 @@ watch(
           :mode="authMode"
           :is-submitting="isSubmittingAuth"
           :error-message="authErrorMessage"
+          :notice-message="authNoticeMessage"
           @login="login"
           @register="register"
           @clear-error="clearAuthError"
@@ -246,6 +257,7 @@ watch(
           v-else-if="isAccountRoute"
           :is="Component"
           :current-user="currentUser"
+          @password-changed="handlePasswordChanged"
         />
 
         <component v-else :is="Component" />
