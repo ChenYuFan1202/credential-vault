@@ -2,9 +2,10 @@ import { handleAuthRequest } from "./src/auth/routes";
 import { handleCredentialRequest } from "./src/credentials/routes";
 
 const port = Number(Bun.env.PORT ?? 3000);
+const corsOrigin = Bun.env.CORS_ORIGIN ?? "http://localhost:5173";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "http://localhost:5173",
+  "Access-Control-Allow-Origin": corsOrigin,
   "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
   "Access-Control-Allow-Credentials": "true",
