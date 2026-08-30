@@ -544,9 +544,40 @@ p {
     grid-template-columns: 1fr;
   }
 
+  .auth-panel .section-heading {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .credential-list-panel > .section-heading,
+  .credential-create-heading,
+  .custom-field-section > .section-heading {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .credential-list-heading .credential-actions {
+    flex-wrap: nowrap;
+  }
+
+  .credential-list-heading .compact-action-button,
+  .credential-create-heading .compact-action-button {
+    width: 40px;
+    min-width: 40px;
+    padding: 0;
+  }
+
+  .credential-list-heading .compact-action-label,
+  .credential-create-heading .compact-action-label {
+    display: none;
+  }
+
   .credential-actions {
     justify-content: start;
     white-space: normal;
+  }
+
+  .detail-form-actions,
+  .detail-footer-actions {
+    justify-content: end;
   }
 
   .credential-actions > button,
@@ -564,11 +595,15 @@ p {
   }
 
   .secret-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .password-input-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .custom-field-input-row {
+    grid-template-columns: minmax(0, 1fr) auto auto;
   }
 
   .custom-field-row {

@@ -285,7 +285,7 @@ function toggleEditCustomFieldVisibility(index: number): void {
           {{ updateErrorMessage }}
         </p>
 
-        <div class="credential-actions">
+        <div class="credential-actions detail-form-actions">
           <button
             type="submit"
             class="form-action-button"
@@ -412,7 +412,7 @@ function toggleEditCustomFieldVisibility(index: number): void {
           </div>
         </dl>
 
-        <div class="credential-actions">
+        <div class="credential-actions detail-footer-actions">
           <button type="button" class="form-action-button" @click="emit('startEdit')">
             Edit
           </button>

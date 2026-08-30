@@ -83,25 +83,33 @@ function confirmExportCredentials(): void {
 </script>
 
 <template>
-  <section class="credential-panel" aria-live="polite">
-    <div class="section-heading">
+  <section class="credential-panel credential-list-panel" aria-live="polite">
+    <div class="section-heading credential-list-heading">
       <div>
         <h2>Stored Credentials</h2>
       </div>
 
       <div class="credential-actions">
-        <RouterLink class="button-link" to="/credentials/new">
+        <RouterLink
+          class="button-link compact-action-button"
+          to="/credentials/new"
+          aria-label="Add credential"
+          title="Add credential"
+        >
           <Plus :size="18" aria-hidden="true" />
-          Add Credential
+          <span class="compact-action-label">Add Credential</span>
         </RouterLink>
 
         <button
           type="button"
+          class="compact-action-button"
+          aria-label="Export TXT"
+          title="Export TXT"
           :disabled="isExporting || credentials.length === 0"
           @click="requestExportCredentials"
         >
           <Download :size="18" aria-hidden="true" />
-          Export TXT
+          <span class="compact-action-label">Export TXT</span>
         </button>
       </div>
     </div>

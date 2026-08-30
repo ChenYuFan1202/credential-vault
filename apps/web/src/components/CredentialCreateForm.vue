@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Eye, EyeOff, Plus, Trash2 } from "lucide-vue-next";
+import { ArrowLeft, Eye, EyeOff, Plus, Trash2 } from "lucide-vue-next";
 
 type CreateCredentialForm = {
   platform: string;
@@ -119,14 +119,20 @@ function submitForm(): void {
 
 <template>
   <section class="credential-panel">
-    <div class="section-heading">
+    <div class="section-heading credential-create-heading">
       <div>
         <p class="eyebrow">New Credential</p>
         <h2>Add Credential</h2>
       </div>
 
-      <RouterLink class="button-link" to="/credentials">
-        Back to Credentials
+      <RouterLink
+        class="button-link compact-action-button"
+        to="/credentials"
+        aria-label="Back to credentials"
+        title="Back to credentials"
+      >
+        <ArrowLeft :size="18" aria-hidden="true" />
+        <span class="compact-action-label">Back to Credentials</span>
       </RouterLink>
     </div>
 
