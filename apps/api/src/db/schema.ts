@@ -1,6 +1,6 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, pgTable, text } from "drizzle-orm/pg-core";
 
-export const users = sqliteTable("users", {
+export const users = pgTable("users", {
   id: text("id").primaryKey(),
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
@@ -8,7 +8,7 @@ export const users = sqliteTable("users", {
   updatedAt: text("updated_at").notNull(),
 });
 
-export const sessions = sqliteTable("sessions", {
+export const sessions = pgTable("sessions", {
   id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
@@ -18,7 +18,7 @@ export const sessions = sqliteTable("sessions", {
   createdAt: text("created_at").notNull(),
 });
 
-export const credentials = sqliteTable("credentials", {
+export const credentials = pgTable("credentials", {
   id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
@@ -35,7 +35,7 @@ export const credentials = sqliteTable("credentials", {
   updatedAt: text("updated_at").notNull(),
 });
 
-export const credentialCustomFields = sqliteTable("credential_custom_fields", {
+export const credentialCustomFields = pgTable("credential_custom_fields", {
   id: text("id").primaryKey(),
   credentialId: text("credential_id")
     .notNull()

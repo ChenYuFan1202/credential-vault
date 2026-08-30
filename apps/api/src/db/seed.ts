@@ -1,18 +1,24 @@
 import { createCredential } from "../credentials/service";
 import { hashPassword } from "../auth/password";
 import { db } from "./client";
-import { credentials, sessions, users } from "./schema";
+import {
+  credentialCustomFields,
+  credentials,
+  sessions,
+  users,
+} from "./schema";
 import { createUser } from "../users/service";
 
 if (Bun.env.NODE_ENV === "production") {
   throw new Error("Refusing to seed credential data in production.");
 }
 
-db.delete(credentials).run();
-db.delete(sessions).run();
-db.delete(users).run();
+await db.delete(credentialCustomFields);
+await db.delete(credentials);
+await db.delete(sessions);
+await db.delete(users);
 
-const demoUser = createUser({
+const demoUser = await createUser({
   username: "demo-user",
   passwordHash: await hashPassword("fake-password-123"),
 });

@@ -56,7 +56,7 @@ function unauthorizedResponse(headers: ResponseHeaders): Response {
   );
 }
 
-function getCurrentUser(request: Request): CurrentUser | null {
+async function getCurrentUser(request: Request): Promise<CurrentUser | null> {
   const sessionToken = getSessionTokenFromCookieHeader(
     request.headers.get("Cookie"),
   );
@@ -142,7 +142,7 @@ export async function handleAuthRequest(
       );
     }
 
-    const session = createSession(result.user.id);
+    const session = await createSession(result.user.id);
 
     return jsonResponse(
       {
@@ -156,7 +156,7 @@ export async function handleAuthRequest(
   }
 
   if (url.pathname === "/auth/me" && request.method === "GET") {
-    const user = getCurrentUser(request);
+    const user = await getCurrentUser(request);
 
     if (user === null) {
       return unauthorizedResponse(headers);
@@ -181,7 +181,7 @@ export async function handleAuthRequest(
       return unauthorizedResponse(headers);
     }
 
-    const user = getUserBySessionToken(sessionToken);
+    const user = await getUserBySessionToken(sessionToken);
 
     if (user === null) {
       return unauthorizedResponse(headers);
@@ -215,7 +215,7 @@ export async function handleAuthRequest(
       );
     }
 
-    deleteSessionByToken(sessionToken);
+    await deleteSessionByToken(sessionToken);
 
     return new Response(null, {
       status: 204,
@@ -232,7 +232,7 @@ export async function handleAuthRequest(
     );
 
     if (sessionToken !== null) {
-      deleteSessionByToken(sessionToken);
+      await deleteSessionByToken(sessionToken);
     }
 
     return new Response(null, {

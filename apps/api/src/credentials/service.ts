@@ -126,12 +126,11 @@ async function decryptCustomField(
 async function listCustomFields(
   credentialId: string,
 ): Promise<CredentialCustomField[]> {
-  const rows = db
+  const rows = await db
     .select()
     .from(credentialCustomFields)
     .where(eq(credentialCustomFields.credentialId, credentialId))
-    .orderBy(credentialCustomFields.sortOrder)
-    .all();
+    .orderBy(credentialCustomFields.sortOrder);
 
   return Promise.all(rows.map((row) => decryptCustomField(row)));
 }
@@ -165,7 +164,7 @@ async function createCustomFields(
     }),
   );
 
-  db.insert(credentialCustomFields).values(rows).run();
+  await db.insert(credentialCustomFields).values(rows);
 }
 
 async function replaceCustomFields(
@@ -173,19 +172,18 @@ async function replaceCustomFields(
   input: CredentialCustomFieldInput[],
   timestamp: string,
 ): Promise<void> {
-  db.delete(credentialCustomFields)
-    .where(eq(credentialCustomFields.credentialId, credentialId))
-    .run();
+  await db
+    .delete(credentialCustomFields)
+    .where(eq(credentialCustomFields.credentialId, credentialId));
 
   await createCustomFields(credentialId, input, timestamp);
 }
 
 export async function listCredentials(userId: string): Promise<Credential[]> {
-  const rows = db
+  const rows = await db
     .select()
     .from(credentials)
-    .where(eq(credentials.userId, userId))
-    .all();
+    .where(eq(credentials.userId, userId));
 
   return Promise.all(rows.map((row) => decryptCredential(row)));
 }
@@ -200,7 +198,7 @@ export async function createCredential(
   const notes = input.notes?.trim() || null;
   const encryptedNotes = notes === null ? null : await encryptString(notes);
 
-  const credential = db
+  const [credential] = await db
     .insert(credentials)
     .values({
       id: crypto.randomUUID(),
@@ -216,8 +214,11 @@ export async function createCredential(
       createdAt: now,
       updatedAt: now,
     })
-    .returning()
-    .get();
+    .returning();
+
+  if (credential === undefined) {
+    throw new Error("Credential could not be created.");
+  }
 
   await createCustomFields(credential.id, input.customFields, now);
 
@@ -228,11 +229,10 @@ export async function getCredentialById(
   userId: string,
   id: string,
 ): Promise<Credential | undefined> {
-  const credential = db
+  const [credential] = await db
     .select()
     .from(credentials)
-    .where(and(eq(credentials.id, id), eq(credentials.userId, userId)))
-    .get();
+    .where(and(eq(credentials.id, id), eq(credentials.userId, userId)));
 
   return credential === undefined ? undefined : decryptCredential(credential);
 }
@@ -282,12 +282,11 @@ export async function updateCredential(
     }
   }
 
-  const credential = db
+  const [credential] = await db
     .update(credentials)
     .set(values)
     .where(and(eq(credentials.id, id), eq(credentials.userId, userId)))
-    .returning()
-    .get();
+    .returning();
 
   if (credential !== undefined && input.customFields !== undefined) {
     await replaceCustomFields(credential.id, input.customFields, now);
@@ -296,26 +295,27 @@ export async function updateCredential(
   return credential === undefined ? undefined : decryptCredential(credential);
 }
 
-export function deleteCredential(userId: string, id: string): boolean {
-  const credential = db
+export async function deleteCredential(
+  userId: string,
+  id: string,
+): Promise<boolean> {
+  const [credential] = await db
     .select()
     .from(credentials)
-    .where(and(eq(credentials.id, id), eq(credentials.userId, userId)))
-    .get();
+    .where(and(eq(credentials.id, id), eq(credentials.userId, userId)));
 
   if (credential === undefined) {
     return false;
   }
 
-  db.delete(credentialCustomFields)
-    .where(eq(credentialCustomFields.credentialId, id))
-    .run();
+  await db
+    .delete(credentialCustomFields)
+    .where(eq(credentialCustomFields.credentialId, id));
 
-  const deletedCredential = db
+  const [deletedCredential] = await db
     .delete(credentials)
     .where(and(eq(credentials.id, id), eq(credentials.userId, userId)))
-    .returning()
-    .get();
+    .returning();
 
   return deletedCredential !== undefined;
 }

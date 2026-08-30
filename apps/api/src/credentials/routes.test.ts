@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { db } from "../db/client";
-import { credentials, users } from "../db/schema";
+import {
+  credentialCustomFields,
+  credentials,
+  sessions,
+  users,
+} from "../db/schema";
 import { createSessionCookie } from "../auth/cookies";
 import { hashPassword } from "../auth/password";
 import { createSession } from "../auth/session";
@@ -48,17 +53,19 @@ let sessionCookie = "";
 beforeEach(async () => {
   await setTestEncryptionKey();
 
-  db.delete(credentials).run();
-  db.delete(users).run();
-  const testUser = createUser({
+  await db.delete(credentialCustomFields);
+  await db.delete(credentials);
+  await db.delete(sessions);
+  await db.delete(users);
+  const testUser = await createUser({
     username: "demo-user",
     passwordHash: await hashPassword("fake-password-123"),
   });
-  const otherUser = createUser({
+  const otherUser = await createUser({
     username: "other-user",
     passwordHash: await hashPassword("other-fake-password-123"),
   });
-  const session = createSession(testUser.id);
+  const session = await createSession(testUser.id);
 
   testUserId = testUser.id;
   otherUserId = otherUser.id;

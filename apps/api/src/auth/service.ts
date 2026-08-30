@@ -60,7 +60,7 @@ export async function loginUser(
   input: LoginUserInput,
 ): Promise<LoginUserResult> {
   const username = input.username.trim();
-  const user = getUserByUsername(username);
+  const user = await getUserByUsername(username);
 
   if (user === undefined) {
     return {
@@ -89,7 +89,7 @@ export async function registerUser(
 ): Promise<RegisterUserResult> {
   const username = input.username.trim();
 
-  const existingUser = getUserByUsername(username);
+  const existingUser = await getUserByUsername(username);
 
   if (existingUser !== undefined) {
     return {
@@ -99,7 +99,7 @@ export async function registerUser(
   }
 
   const passwordHash = await hashPassword(input.password);
-  const user = createUser({
+  const user = await createUser({
     username,
     passwordHash,
   });
@@ -114,7 +114,7 @@ export async function changePassword(
   userId: string,
   input: ChangePasswordInput,
 ): Promise<ChangePasswordResult> {
-  const user = getUserById(userId);
+  const user = await getUserById(userId);
 
   if (user === undefined) {
     return {
@@ -136,7 +136,7 @@ export async function changePassword(
   }
 
   const passwordHash = await hashPassword(input.newPassword);
-  updateUserPasswordHash(user.id, passwordHash);
+  await updateUserPasswordHash(user.id, passwordHash);
 
   return {
     success: true,

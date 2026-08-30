@@ -1,15 +1,22 @@
-import { Database } from "bun:sqlite";
-import { drizzle } from "drizzle-orm/bun-sqlite";
-import { migrate } from "drizzle-orm/bun-sqlite/migrator";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
+import postgres from "postgres";
 
-const databaseUrl = Bun.env.DATABASE_URL ?? "credential-vault.sqlite";
-const sqlite = new Database(databaseUrl);
-const db = drizzle(sqlite);
+const databaseUrl = Bun.env.DATABASE_URL;
 
-migrate(db, {
+if (databaseUrl === undefined) {
+  throw new Error("DATABASE_URL is required.");
+}
+
+const migrationClient = postgres(databaseUrl, {
+  max: 1,
+});
+const db = drizzle(migrationClient);
+
+await migrate(db, {
   migrationsFolder: "./drizzle",
 });
 
-sqlite.close();
+await migrationClient.end();
 
 console.log("Database migrations applied.");

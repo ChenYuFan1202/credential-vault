@@ -13,7 +13,7 @@
     "db:rebuild": "bun run src/db/rebuild.ts && bun run db:migrate",
     "db:seed": "bun run src/db/seed.ts",
     "crypto:generate-key": "bun run src/crypto/generate-key.ts",
-    "test": "DATABASE_URL=credential-vault.test.sqlite bun run db:migrate && DATABASE_URL=credential-vault.test.sqlite bun test"
+    "test": "DATABASE_URL=postgres://credential_vault:credential_vault_dev_password@localhost:5432/credential_vault_test bun run db:rebuild && DATABASE_URL=postgres://credential_vault:credential_vault_dev_password@localhost:5432/credential_vault_test bun test"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
-    "libsodium-wrappers": "^0.8.4"
+    "libsodium-wrappers": "^0.8.4",
+    "postgres": "^3.4.9"
   }
 }

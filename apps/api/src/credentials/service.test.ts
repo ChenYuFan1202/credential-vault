@@ -19,14 +19,15 @@ let otherUserId = "";
 beforeEach(async () => {
   await setTestEncryptionKey();
 
-  db.delete(credentials).run();
-  db.delete(users).run();
+  await db.delete(credentialCustomFields);
+  await db.delete(credentials);
+  await db.delete(users);
 
-  const testUser = createUser({
+  const testUser = await createUser({
     username: "test-user",
     passwordHash: await hashPassword("fake-password-123"),
   });
-  const otherUser = createUser({
+  const otherUser = await createUser({
     username: "other-user",
     passwordHash: await hashPassword("other-fake-password-123"),
   });
@@ -91,21 +92,19 @@ describe("credential service", () => {
       ],
     });
 
-    const storedCredential = db
+    const [storedCredential] = await db
       .select()
       .from(credentials)
-      .where(eq(credentials.id, credential.id))
-      .get();
+      .where(eq(credentials.id, credential.id));
 
     if (storedCredential === undefined) {
       throw new Error("Expected stored credential.");
     }
 
-    const storedCustomField = db
+    const [storedCustomField] = await db
       .select()
       .from(credentialCustomFields)
-      .where(eq(credentialCustomFields.credentialId, credential.id))
-      .get();
+      .where(eq(credentialCustomFields.credentialId, credential.id));
 
     if (storedCustomField === undefined) {
       throw new Error("Expected stored custom field.");
@@ -220,13 +219,12 @@ describe("credential service", () => {
       ],
     });
 
-    const deleted = deleteCredential(testUserId, credential.id);
+    const deleted = await deleteCredential(testUserId, credential.id);
     const foundCredential = await getCredentialById(testUserId, credential.id);
-    const storedCustomFields = db
+    const storedCustomFields = await db
       .select()
       .from(credentialCustomFields)
-      .where(eq(credentialCustomFields.credentialId, credential.id))
-      .all();
+      .where(eq(credentialCustomFields.credentialId, credential.id));
 
     expect(deleted).toBe(true);
     expect(foundCredential).toBeUndefined();

@@ -14,10 +14,10 @@ import {
 let testUserId = "";
 
 beforeEach(async () => {
-  db.delete(sessions).run();
-  db.delete(users).run();
+  await db.delete(sessions);
+  await db.delete(users);
 
-  const user = createUser({
+  const user = await createUser({
     username: "session-test-user",
     passwordHash: await hashPassword("fake-password-123"),
   });
@@ -26,14 +26,13 @@ beforeEach(async () => {
 });
 
 describe("sessions", () => {
-  test("creates a session and stores only the token hash", () => {
-    const session = createSession(testUserId);
+  test("creates a session and stores only the token hash", async () => {
+    const session = await createSession(testUserId);
     const sessionTokenHash = hashSessionToken(session.sessionToken);
-    const storedSession = db
+    const [storedSession] = await db
       .select()
       .from(sessions)
-      .where(eq(sessions.sessionTokenHash, sessionTokenHash))
-      .get();
+      .where(eq(sessions.sessionTokenHash, sessionTokenHash));
 
     expect(session.sessionToken).toBeString();
     expect(session.sessionToken).not.toBe(sessionTokenHash);
@@ -41,51 +40,50 @@ describe("sessions", () => {
     expect(storedSession?.sessionTokenHash).not.toBe(session.sessionToken);
   });
 
-  test("returns the user for a valid session token", () => {
-    const session = createSession(testUserId);
+  test("returns the user for a valid session token", async () => {
+    const session = await createSession(testUserId);
 
-    const user = getUserBySessionToken(session.sessionToken);
+    const user = await getUserBySessionToken(session.sessionToken);
 
     expect(user?.id).toBe(testUserId);
     expect(user?.username).toBe("session-test-user");
   });
 
-  test("returns null for an unknown session token", () => {
-    const user = getUserBySessionToken("missing-session-token");
+  test("returns null for an unknown session token", async () => {
+    const user = await getUserBySessionToken("missing-session-token");
 
     expect(user).toBeNull();
   });
 
-  test("deletes a session by token", () => {
-    const session = createSession(testUserId);
+  test("deletes a session by token", async () => {
+    const session = await createSession(testUserId);
 
-    deleteSessionByToken(session.sessionToken);
+    await deleteSessionByToken(session.sessionToken);
 
-    const user = getUserBySessionToken(session.sessionToken);
+    const user = await getUserBySessionToken(session.sessionToken);
 
     expect(user).toBeNull();
   });
 
-  test("deletes an expired session when encountered", () => {
+  test("deletes an expired session when encountered", async () => {
     const expiredToken = "expired-session-token";
     const expiredTokenHash = hashSessionToken(expiredToken);
 
-    db.insert(sessions)
+    await db
+      .insert(sessions)
       .values({
         id: crypto.randomUUID(),
         userId: testUserId,
         sessionTokenHash: expiredTokenHash,
         expiresAt: new Date(Date.now() - 1000).toISOString(),
         createdAt: new Date(Date.now() - 2000).toISOString(),
-      })
-      .run();
+      });
 
-    const user = getUserBySessionToken(expiredToken);
-    const storedSession = db
+    const user = await getUserBySessionToken(expiredToken);
+    const [storedSession] = await db
       .select()
       .from(sessions)
-      .where(eq(sessions.sessionTokenHash, expiredTokenHash))
-      .get();
+      .where(eq(sessions.sessionTokenHash, expiredTokenHash));
 
     expect(user).toBeNull();
     expect(storedSession).toBeUndefined();

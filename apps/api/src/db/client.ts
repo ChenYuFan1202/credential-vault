@@ -1,10 +1,15 @@
-import { Database } from "bun:sqlite";
-import { drizzle } from "drizzle-orm/bun-sqlite";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as schema from "./schema";
 
-const databaseUrl = Bun.env.DATABASE_URL ?? "credential-vault.sqlite";
-const sqlite = new Database(databaseUrl);
+const databaseUrl = Bun.env.DATABASE_URL;
 
-export const db = drizzle(sqlite, {
+if (databaseUrl === undefined) {
+  throw new Error("DATABASE_URL is required.");
+}
+
+export const queryClient = postgres(databaseUrl);
+
+export const db = drizzle(queryClient, {
   schema,
 });

@@ -5,8 +5,8 @@ import { getUserByUsername } from "../users/service";
 import { verifyPassword } from "./password";
 import { changePassword, loginUser, registerUser } from "./service";
 
-beforeEach(() => {
-  db.delete(users).run();
+beforeEach(async () => {
+  await db.delete(users);
 });
 
 describe("auth service", () => {
@@ -35,7 +35,7 @@ describe("auth service", () => {
       throw new Error("Expected registration to succeed.");
     }
 
-    const user = getUserByUsername("demo-user");
+    const user = await getUserByUsername("demo-user");
 
     if (user === undefined) {
       throw new Error("Expected user to exist.");

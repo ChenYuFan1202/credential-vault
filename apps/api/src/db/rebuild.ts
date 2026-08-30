@@ -1,18 +1,21 @@
-import { existsSync, unlinkSync } from "node:fs";
+import postgres from "postgres";
 
-const databaseUrl = Bun.env.DATABASE_URL ?? "credential-vault.sqlite";
+const databaseUrl = Bun.env.DATABASE_URL;
 
 if (Bun.env.NODE_ENV === "production") {
   throw new Error("Refusing to rebuild the database in production.");
 }
 
-if (!databaseUrl.endsWith(".sqlite")) {
-  throw new Error("Refusing to rebuild a non-SQLite database file.");
+if (databaseUrl === undefined) {
+  throw new Error("DATABASE_URL is required.");
 }
 
-if (existsSync(databaseUrl)) {
-  unlinkSync(databaseUrl);
-  console.log(`Deleted ${databaseUrl}.`);
-} else {
-  console.log(`${databaseUrl} does not exist.`);
-}
+const client = postgres(databaseUrl, {
+  max: 1,
+});
+
+await client`drop schema if exists public cascade`;
+await client`create schema public`;
+await client.end();
+
+console.log("Database schema rebuilt.");

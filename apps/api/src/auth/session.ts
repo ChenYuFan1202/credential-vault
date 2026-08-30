@@ -37,21 +37,21 @@ export function hashSessionToken(sessionToken: string): string {
   return Bun.CryptoHasher.hash("sha256", data, "hex");
 }
 
-export function createSession(userId: string): CreatedSession {
+export async function createSession(userId: string): Promise<CreatedSession> {
   const sessionToken = createSessionToken();
   const sessionTokenHash = hashSessionToken(sessionToken);
   const now = new Date();
   const expiresAt = new Date(now.getTime() + sessionDurationMs).toISOString();
 
-  db.insert(sessions)
+  await db
+    .insert(sessions)
     .values({
       id: crypto.randomUUID(),
       userId,
       sessionTokenHash,
       expiresAt,
       createdAt: now.toISOString(),
-    })
-    .run();
+    });
 
   return {
     sessionToken,
@@ -59,26 +59,28 @@ export function createSession(userId: string): CreatedSession {
   };
 }
 
-export function getUserBySessionToken(
+export async function getUserBySessionToken(
   sessionToken: string,
-): PublicUser | null {
+): Promise<PublicUser | null> {
   const sessionTokenHash = hashSessionToken(sessionToken);
-  const session = db
+  const [session] = await db
     .select()
     .from(sessions)
-    .where(eq(sessions.sessionTokenHash, sessionTokenHash))
-    .get();
+    .where(eq(sessions.sessionTokenHash, sessionTokenHash));
 
   if (session === undefined) {
     return null;
   }
 
   if (session.expiresAt <= new Date().toISOString()) {
-    deleteSessionByToken(sessionToken);
+    await deleteSessionByToken(sessionToken);
     return null;
   }
 
-  const user = db.select().from(users).where(eq(users.id, session.userId)).get();
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, session.userId));
 
   if (user === undefined) {
     return null;
@@ -87,10 +89,8 @@ export function getUserBySessionToken(
   return toPublicUser(user);
 }
 
-export function deleteSessionByToken(sessionToken: string): void {
+export async function deleteSessionByToken(sessionToken: string): Promise<void> {
   const sessionTokenHash = hashSessionToken(sessionToken);
 
-  db.delete(sessions)
-    .where(eq(sessions.sessionTokenHash, sessionTokenHash))
-    .run();
+  await db.delete(sessions).where(eq(sessions.sessionTokenHash, sessionTokenHash));
 }

@@ -46,14 +46,14 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 
 ### Architecture
 
-- Use SQLite for local learning and version 1.
-- Consider PostgreSQL later only if deployment becomes a real goal.
+- Use PostgreSQL for local development and deployment preparation.
+- Use separate local PostgreSQL databases for development and test.
 - Use a separated frontend/backend architecture.
 - Use `apps/web` for the Vue frontend.
 - Use `apps/api` for the Bun backend.
 - Use REST APIs with JSON between frontend and backend.
 - Use session-based authentication with HTTP cookies for version 1.
-- Use SQLite-backed sessions for auth version 1.
+- Use database-backed sessions for auth version 1.
 - Do not use Redis for auth version 1.
 
 ### Security

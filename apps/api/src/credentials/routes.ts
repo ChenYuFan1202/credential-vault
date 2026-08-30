@@ -57,7 +57,7 @@ function credentialNotFoundResponse(headers: ResponseHeaders): Response {
   );
 }
 
-function getCurrentUser(request: Request): CurrentUser | null {
+async function getCurrentUser(request: Request): Promise<CurrentUser | null> {
   const sessionToken = getSessionTokenFromCookieHeader(
     request.headers.get("Cookie"),
   );
@@ -90,7 +90,7 @@ export async function handleCredentialRequest(
     return null;
   }
 
-  const currentUser = getCurrentUser(request);
+  const currentUser = await getCurrentUser(request);
 
   if (currentUser === null) {
     return unauthorizedResponse(headers);
@@ -240,7 +240,7 @@ export async function handleCredentialRequest(
       return credentialIdRequiredResponse(headers);
     }
 
-    const deleted = deleteCredential(currentUser.id, id);
+    const deleted = await deleteCredential(currentUser.id, id);
 
     if (!deleted) {
       return credentialNotFoundResponse(headers);

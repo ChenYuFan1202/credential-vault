@@ -25,9 +25,9 @@ const headers = {
   "Access-Control-Allow-Credentials": "true",
 };
 
-beforeEach(() => {
-  db.delete(sessions).run();
-  db.delete(users).run();
+beforeEach(async () => {
+  await db.delete(sessions);
+  await db.delete(users);
 });
 
 function createJsonRequest(pathname: string, method: string, body: unknown) {
@@ -139,7 +139,7 @@ describe("auth routes", () => {
   });
 
   test("handles POST /auth/login and sets a session cookie", async () => {
-    const user = createUser({
+    const user = await createUser({
       username: "demo-user",
       passwordHash: await hashPassword("fake-password-123"),
     });
@@ -159,11 +159,10 @@ describe("auth routes", () => {
       throw new Error("Expected raw session token in cookie.");
     }
 
-    const storedSession = db
+    const [storedSession] = await db
       .select()
       .from(sessions)
-      .where(eq(sessions.sessionTokenHash, hashSessionToken(sessionToken)))
-      .get();
+      .where(eq(sessions.sessionTokenHash, hashSessionToken(sessionToken)));
 
     expect(response.status).toBe(200);
     expect(body.data.id).toBe(user.id);
@@ -173,7 +172,7 @@ describe("auth routes", () => {
   });
 
   test("rejects POST /auth/login with invalid credentials", async () => {
-    createUser({
+    await createUser({
       username: "demo-user",
       passwordHash: await hashPassword("fake-password-123"),
     });
@@ -192,7 +191,7 @@ describe("auth routes", () => {
   });
 
   test("handles GET /auth/me with a valid session cookie", async () => {
-    const user = createUser({
+    const user = await createUser({
       username: "demo-user",
       passwordHash: await hashPassword("fake-password-123"),
     });
@@ -219,7 +218,7 @@ describe("auth routes", () => {
   });
 
   test("handles PATCH /auth/password and expires the current session", async () => {
-    createUser({
+    await createUser({
       username: "demo-user",
       passwordHash: await hashPassword("fake-password-123"),
     });
@@ -248,11 +247,10 @@ describe("auth routes", () => {
     const url = new URL(request.url);
 
     const response = await handleAuthRequest(request, url, headers);
-    const storedSession = db
+    const [storedSession] = await db
       .select()
       .from(sessions)
-      .where(eq(sessions.sessionTokenHash, hashSessionToken(sessionToken)))
-      .get();
+      .where(eq(sessions.sessionTokenHash, hashSessionToken(sessionToken)));
     const meRequest = new Request("http://localhost:3000/auth/me", {
       headers: {
         Cookie: cookie,
@@ -317,7 +315,7 @@ describe("auth routes", () => {
   });
 
   test("rejects PATCH /auth/password with an incorrect current password", async () => {
-    createUser({
+    await createUser({
       username: "demo-user",
       passwordHash: await hashPassword("fake-password-123"),
     });
@@ -360,7 +358,7 @@ describe("auth routes", () => {
   });
 
   test("handles POST /auth/logout and expires the session cookie", async () => {
-    createUser({
+    await createUser({
       username: "demo-user",
       passwordHash: await hashPassword("fake-password-123"),
     });
@@ -386,11 +384,10 @@ describe("auth routes", () => {
     const url = new URL(request.url);
 
     const response = await handleAuthRequest(request, url, headers);
-    const storedSession = db
+    const [storedSession] = await db
       .select()
       .from(sessions)
-      .where(eq(sessions.sessionTokenHash, hashSessionToken(sessionToken)))
-      .get();
+      .where(eq(sessions.sessionTokenHash, hashSessionToken(sessionToken)));
 
     if (response === null) {
       throw new Error("Expected route response.");
