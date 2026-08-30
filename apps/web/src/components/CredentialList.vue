@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { Download, Plus, Trash2 } from "lucide-vue-next";
 import ConfirmDialog from "./ConfirmDialog.vue";
 
 type Credential = {
@@ -85,12 +86,12 @@ function confirmExportCredentials(): void {
   <section class="credential-panel" aria-live="polite">
     <div class="section-heading">
       <div>
-        <p class="eyebrow">Credentials</p>
         <h2>Stored Credentials</h2>
       </div>
 
       <div class="credential-actions">
         <RouterLink class="button-link" to="/credentials/new">
+          <Plus :size="18" aria-hidden="true" />
           Add Credential
         </RouterLink>
 
@@ -99,6 +100,7 @@ function confirmExportCredentials(): void {
           :disabled="isExporting || credentials.length === 0"
           @click="requestExportCredentials"
         >
+          <Download :size="18" aria-hidden="true" />
           Export TXT
         </button>
       </div>
@@ -139,28 +141,27 @@ function confirmExportCredentials(): void {
 
       <ul v-else class="credential-list">
         <li v-for="credential in filteredCredentials" :key="credential.id">
-          <div class="credential-item-heading">
-            <div class="credential-summary">
-              <strong>{{ credential.platform }}</strong>
+          <RouterLink
+            class="credential-card-link"
+            :to="`/credentials/${credential.id}`"
+          >
+            <strong>{{ credential.platform }}</strong>
 
-              <p v-if="credential.notes">
-                {{ credential.notes }}
-              </p>
-            </div>
+            <p v-if="credential.notes">
+              {{ credential.notes }}
+            </p>
+          </RouterLink>
 
-            <div class="credential-actions">
-              <RouterLink class="button-link" :to="`/credentials/${credential.id}`">
-                View
-              </RouterLink>
-
-              <button
-                type="button"
-                class="danger-button"
-                @click="requestDeleteCredential(credential.id)"
-              >
-                Delete
-              </button>
-            </div>
+          <div class="credential-card-footer">
+            <button
+              type="button"
+              class="icon-button danger-button"
+              :aria-label="`Delete ${credential.platform}`"
+              :title="`Delete ${credential.platform}`"
+              @click="requestDeleteCredential(credential.id)"
+            >
+              <Trash2 :size="18" aria-hidden="true" />
+            </button>
           </div>
         </li>
       </ul>

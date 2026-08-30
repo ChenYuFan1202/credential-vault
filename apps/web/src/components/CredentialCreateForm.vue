@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { Eye, EyeOff, Plus, Trash2 } from "lucide-vue-next";
 
 type CreateCredentialForm = {
   platform: string;
@@ -31,12 +32,18 @@ const newCredential = ref<CreateCredentialForm>({
   customFields: [],
 });
 const isPasswordVisible = ref(false);
+const visibleCustomFieldIndexes = ref<number[]>([]);
+
+function isCompleteCustomField(field: CredentialCustomFieldForm): boolean {
+  return field.label.trim() !== "" && field.value !== "";
+}
 
 const canCreateCredential = computed(() => {
   return (
     newCredential.value.platform.trim() !== "" &&
     newCredential.value.username.trim() !== "" &&
-    newCredential.value.password !== ""
+    newCredential.value.password !== "" &&
+    newCredential.value.customFields.every(isCompleteCustomField)
   );
 });
 
@@ -48,6 +55,7 @@ function resetForm(): void {
     notes: "",
     customFields: [],
   };
+  visibleCustomFieldIndexes.value = [];
 }
 
 function addCustomField(): void {
@@ -59,6 +67,29 @@ function addCustomField(): void {
 
 function removeCustomField(index: number): void {
   newCredential.value.customFields.splice(index, 1);
+  visibleCustomFieldIndexes.value = visibleCustomFieldIndexes.value
+    .filter((visibleIndex) => visibleIndex !== index)
+    .map((visibleIndex) =>
+      visibleIndex > index ? visibleIndex - 1 : visibleIndex,
+    );
+}
+
+function isCustomFieldVisible(index: number): boolean {
+  return visibleCustomFieldIndexes.value.includes(index);
+}
+
+function toggleCustomFieldVisibility(index: number): void {
+  if (isCustomFieldVisible(index)) {
+    visibleCustomFieldIndexes.value = visibleCustomFieldIndexes.value.filter(
+      (visibleIndex) => visibleIndex !== index,
+    );
+    return;
+  }
+
+  visibleCustomFieldIndexes.value = [
+    ...visibleCustomFieldIndexes.value,
+    index,
+  ];
 }
 
 function getSubmittedCustomFields(): CredentialCustomFieldForm[] {
@@ -121,9 +152,13 @@ function submitForm(): void {
 
           <button
             type="button"
+            class="icon-button"
+            :aria-label="isPasswordVisible ? 'Hide password' : 'Show password'"
+            :title="isPasswordVisible ? 'Hide password' : 'Show password'"
             @click="isPasswordVisible = !isPasswordVisible"
           >
-            {{ isPasswordVisible ? "Hide" : "Show" }}
+            <EyeOff v-if="isPasswordVisible" :size="18" aria-hidden="true" />
+            <Eye v-else :size="18" aria-hidden="true" />
           </button>
         </div>
       </label>
@@ -139,8 +174,14 @@ function submitForm(): void {
             <span>Custom Fields</span>
           </div>
 
-          <button type="button" @click="addCustomField">
-            Add Field
+          <button
+            type="button"
+            class="icon-button"
+            aria-label="Add custom field"
+            title="Add custom field"
+            @click="addCustomField"
+          >
+            <Plus :size="18" aria-hidden="true" />
           </button>
         </div>
 
@@ -156,12 +197,47 @@ function submitForm(): void {
 
           <label>
             <span>Value</span>
-            <input v-model="field.value" type="text" autocomplete="off" />
-          </label>
+            <div class="password-input-row custom-field-input-row">
+              <input
+                v-model="field.value"
+                :type="isCustomFieldVisible(index) ? 'text' : 'password'"
+                autocomplete="off"
+              />
 
-          <button type="button" @click="removeCustomField(index)">
-            Remove
-          </button>
+              <button
+                type="button"
+                class="icon-button"
+                :aria-label="
+                  isCustomFieldVisible(index)
+                    ? `Hide ${field.label || 'custom field'}`
+                    : `Show ${field.label || 'custom field'}`
+                "
+                :title="
+                  isCustomFieldVisible(index)
+                    ? `Hide ${field.label || 'custom field'}`
+                    : `Show ${field.label || 'custom field'}`
+                "
+                @click="toggleCustomFieldVisibility(index)"
+              >
+                <EyeOff
+                  v-if="isCustomFieldVisible(index)"
+                  :size="18"
+                  aria-hidden="true"
+                />
+                <Eye v-else :size="18" aria-hidden="true" />
+              </button>
+
+              <button
+                type="button"
+                class="icon-button danger-button"
+                :aria-label="`Remove ${field.label || 'custom field'}`"
+                :title="`Remove ${field.label || 'custom field'}`"
+                @click="removeCustomField(index)"
+              >
+                <Trash2 :size="18" aria-hidden="true" />
+              </button>
+            </div>
+          </label>
         </div>
       </div>
 
@@ -171,6 +247,7 @@ function submitForm(): void {
 
       <button
         type="submit"
+        class="form-action-button auth-submit-button"
         :disabled="!canCreateCredential || isCreating"
       >
         {{ isCreating ? "Adding..." : "Add Credential" }}

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { Copy, Eye, EyeOff, Plus, Trash2 } from "lucide-vue-next";
 
 type Credential = {
   id: string;
@@ -67,7 +68,7 @@ const isPasswordVisible = ref(false);
 const isEditPasswordVisible = ref(false);
 const visibleCustomFieldIds = ref<string[]>([]);
 const visibleEditCustomFieldIndexes = ref<number[]>([]);
-const copyMessage = ref("");
+const copiedTarget = ref<string | null>(null);
 
 const displayedPassword = computed(() => {
   return isPasswordVisible.value ? props.credential?.password ?? "" : "••••••••";
@@ -77,13 +78,19 @@ function getFormValue(event: Event): string {
   return (event.target as HTMLInputElement | HTMLTextAreaElement).value;
 }
 
-async function copyText(value: string, message: string): Promise<void> {
+async function copyText(value: string, target: string): Promise<void> {
   await navigator.clipboard.writeText(value);
-  copyMessage.value = message;
+  copiedTarget.value = target;
 
   window.setTimeout(() => {
-    copyMessage.value = "";
+    if (copiedTarget.value === target) {
+      copiedTarget.value = null;
+    }
   }, 1600);
+}
+
+function getCopyLabel(target: string, label: string): string {
+  return copiedTarget.value === target ? "Copied" : label;
 }
 
 function isCustomFieldVisible(id: string): boolean {
@@ -171,9 +178,13 @@ function toggleEditCustomFieldVisibility(index: number): void {
 
             <button
               type="button"
+              class="icon-button"
+              :aria-label="isEditPasswordVisible ? 'Hide password' : 'Show password'"
+              :title="isEditPasswordVisible ? 'Hide password' : 'Show password'"
               @click="isEditPasswordVisible = !isEditPasswordVisible"
             >
-              {{ isEditPasswordVisible ? "Hide" : "Show" }}
+              <EyeOff v-if="isEditPasswordVisible" :size="18" aria-hidden="true" />
+              <Eye v-else :size="18" aria-hidden="true" />
             </button>
           </div>
         </label>
@@ -193,8 +204,14 @@ function toggleEditCustomFieldVisibility(index: number): void {
               <span>Custom Fields</span>
             </div>
 
-            <button type="button" @click="emit('addCustomField')">
-              Add Field
+            <button
+              type="button"
+              class="icon-button"
+              aria-label="Add custom field"
+              title="Add custom field"
+              @click="emit('addCustomField')"
+            >
+              <Plus :size="18" aria-hidden="true" />
             </button>
           </div>
 
@@ -217,7 +234,7 @@ function toggleEditCustomFieldVisibility(index: number): void {
 
             <label>
               <span>Value</span>
-              <div class="password-input-row">
+              <div class="password-input-row custom-field-input-row">
                 <input
                   :value="field.value"
                   :type="isEditCustomFieldVisible(index) ? 'text' : 'password'"
@@ -229,16 +246,38 @@ function toggleEditCustomFieldVisibility(index: number): void {
 
                 <button
                   type="button"
+                  class="icon-button"
+                  :aria-label="
+                    isEditCustomFieldVisible(index)
+                      ? `Hide ${field.label || 'custom field'}`
+                      : `Show ${field.label || 'custom field'}`
+                  "
+                  :title="
+                    isEditCustomFieldVisible(index)
+                      ? `Hide ${field.label || 'custom field'}`
+                      : `Show ${field.label || 'custom field'}`
+                  "
                   @click="toggleEditCustomFieldVisibility(index)"
                 >
-                  {{ isEditCustomFieldVisible(index) ? "Hide" : "Show" }}
+                  <EyeOff
+                    v-if="isEditCustomFieldVisible(index)"
+                    :size="18"
+                    aria-hidden="true"
+                  />
+                  <Eye v-else :size="18" aria-hidden="true" />
+                </button>
+
+                <button
+                  type="button"
+                  class="icon-button danger-button"
+                  :aria-label="`Remove ${field.label || 'custom field'}`"
+                  :title="`Remove ${field.label || 'custom field'}`"
+                  @click="emit('removeCustomField', index)"
+                >
+                  <Trash2 :size="18" aria-hidden="true" />
                 </button>
               </div>
             </label>
-
-            <button type="button" @click="emit('removeCustomField', index)">
-              Remove
-            </button>
           </div>
         </div>
 
@@ -249,12 +288,17 @@ function toggleEditCustomFieldVisibility(index: number): void {
         <div class="credential-actions">
           <button
             type="submit"
+            class="form-action-button"
             :disabled="!canUpdate || isUpdating"
           >
             {{ isUpdating ? "Saving..." : "Save" }}
           </button>
 
-          <button type="button" @click="emit('cancelEdit')">
+          <button
+            type="button"
+            class="form-action-button"
+            @click="emit('cancelEdit')"
+          >
             Cancel
           </button>
         </div>
@@ -270,9 +314,13 @@ function toggleEditCustomFieldVisibility(index: number): void {
 
                 <button
                   type="button"
-                  @click="copyText(credential.username, 'Username copied.')"
+                  class="icon-button"
+                  :class="{ 'is-copied': copiedTarget === 'username' }"
+                  :aria-label="getCopyLabel('username', 'Copy username')"
+                  :data-tooltip="getCopyLabel('username', 'Copy username')"
+                  @click="copyText(credential.username, 'username')"
                 >
-                  Copy Username
+                  <Copy :size="18" aria-hidden="true" />
                 </button>
               </div>
             </dd>
@@ -287,16 +335,24 @@ function toggleEditCustomFieldVisibility(index: number): void {
                 <div class="credential-actions">
                   <button
                     type="button"
+                    class="icon-button"
+                    :aria-label="isPasswordVisible ? 'Hide password' : 'Show password'"
+                    :title="isPasswordVisible ? 'Hide password' : 'Show password'"
                     @click="isPasswordVisible = !isPasswordVisible"
                   >
-                    {{ isPasswordVisible ? "Hide" : "Show" }}
+                    <EyeOff v-if="isPasswordVisible" :size="18" aria-hidden="true" />
+                    <Eye v-else :size="18" aria-hidden="true" />
                   </button>
 
                   <button
                     type="button"
-                    @click="copyText(credential.password, 'Password copied.')"
+                    class="icon-button"
+                    :class="{ 'is-copied': copiedTarget === 'password' }"
+                    :aria-label="getCopyLabel('password', 'Copy password')"
+                    :data-tooltip="getCopyLabel('password', 'Copy password')"
+                    @click="copyText(credential.password, 'password')"
                   >
-                    Copy Password
+                    <Copy :size="18" aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -319,16 +375,36 @@ function toggleEditCustomFieldVisibility(index: number): void {
                 <div class="credential-actions">
                   <button
                     type="button"
+                    class="icon-button"
+                    :aria-label="
+                      isCustomFieldVisible(field.id)
+                        ? `Hide ${field.label}`
+                        : `Show ${field.label}`
+                    "
+                    :title="
+                      isCustomFieldVisible(field.id)
+                        ? `Hide ${field.label}`
+                        : `Show ${field.label}`
+                    "
                     @click="toggleCustomFieldVisibility(field.id)"
                   >
-                    {{ isCustomFieldVisible(field.id) ? "Hide" : "Show" }}
+                    <EyeOff
+                      v-if="isCustomFieldVisible(field.id)"
+                      :size="18"
+                      aria-hidden="true"
+                    />
+                    <Eye v-else :size="18" aria-hidden="true" />
                   </button>
 
                   <button
                     type="button"
-                    @click="copyText(field.value, `${field.label} copied.`)"
+                    class="icon-button"
+                    :class="{ 'is-copied': copiedTarget === field.id }"
+                    :aria-label="getCopyLabel(field.id, `Copy ${field.label}`)"
+                    :data-tooltip="getCopyLabel(field.id, `Copy ${field.label}`)"
+                    @click="copyText(field.value, field.id)"
                   >
-                    Copy
+                    <Copy :size="18" aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -336,16 +412,12 @@ function toggleEditCustomFieldVisibility(index: number): void {
           </div>
         </dl>
 
-        <p v-if="copyMessage" class="success-message">
-          {{ copyMessage }}
-        </p>
-
         <div class="credential-actions">
-          <button type="button" @click="emit('startEdit')">
+          <button type="button" class="form-action-button" @click="emit('startEdit')">
             Edit
           </button>
 
-          <button type="button" @click="emit('close')">
+          <button type="button" class="form-action-button" @click="emit('close')">
             Close
           </button>
         </div>

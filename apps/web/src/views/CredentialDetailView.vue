@@ -63,11 +63,16 @@ const credentialId = computed(() => {
   return typeof route.params.id === "string" ? route.params.id : "";
 });
 
+function isCompleteCustomField(field: EditCredentialCustomFieldForm): boolean {
+  return field.label.trim() !== "" && field.value !== "";
+}
+
 const canUpdateCredential = computed(() => {
   return (
     editCredential.value.platform.trim() !== "" &&
     editCredential.value.username.trim() !== "" &&
-    editCredential.value.password !== ""
+    editCredential.value.password !== "" &&
+    editCredential.value.customFields.every(isCompleteCustomField)
   );
 });
 

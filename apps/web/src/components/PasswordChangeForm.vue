@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { Eye, EyeOff } from "lucide-vue-next";
 
 type PasswordChangeFormInput = {
   currentPassword: string;
@@ -53,7 +54,6 @@ function submitForm(): void {
 <template>
   <section class="credential-panel">
     <div>
-      <p class="eyebrow">Account Security</p>
       <h2>Change Password</h2>
     </div>
 
@@ -69,9 +69,25 @@ function submitForm(): void {
 
           <button
             type="button"
+            class="icon-button"
+            :aria-label="
+              isCurrentPasswordVisible
+                ? 'Hide current password'
+                : 'Show current password'
+            "
+            :title="
+              isCurrentPasswordVisible
+                ? 'Hide current password'
+                : 'Show current password'
+            "
             @click="isCurrentPasswordVisible = !isCurrentPasswordVisible"
           >
-            {{ isCurrentPasswordVisible ? "Hide" : "Show" }}
+            <EyeOff
+              v-if="isCurrentPasswordVisible"
+              :size="18"
+              aria-hidden="true"
+            />
+            <Eye v-else :size="18" aria-hidden="true" />
           </button>
         </div>
       </label>
@@ -87,9 +103,25 @@ function submitForm(): void {
 
           <button
             type="button"
+            class="icon-button"
+            :aria-label="
+              isNewPasswordVisible
+                ? 'Hide new password'
+                : 'Show new password'
+            "
+            :title="
+              isNewPasswordVisible
+                ? 'Hide new password'
+                : 'Show new password'
+            "
             @click="isNewPasswordVisible = !isNewPasswordVisible"
           >
-            {{ isNewPasswordVisible ? "Hide" : "Show" }}
+            <EyeOff
+              v-if="isNewPasswordVisible"
+              :size="18"
+              aria-hidden="true"
+            />
+            <Eye v-else :size="18" aria-hidden="true" />
           </button>
         </div>
         <small>At least 8 characters.</small>
@@ -103,7 +135,11 @@ function submitForm(): void {
         {{ errorMessage }}
       </p>
 
-      <button type="submit" :disabled="!canChangePassword || isChanging">
+      <button
+        type="submit"
+        class="auth-submit-button"
+        :disabled="!canChangePassword || isChanging"
+      >
         {{ isChanging ? "Changing..." : "Change Password" }}
       </button>
     </form>

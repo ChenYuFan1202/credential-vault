@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { Eye, EyeOff } from "lucide-vue-next";
 
 type AuthMode = "login" | "register";
 
@@ -71,10 +72,9 @@ watch(
 </script>
 
 <template>
-  <section class="credential-panel">
+  <section class="credential-panel auth-panel">
     <div class="section-heading">
       <div>
-        <p class="eyebrow">Account</p>
         <h2>{{ mode === "login" ? "Login" : "Register" }}</h2>
       </div>
 
@@ -93,6 +93,9 @@ watch(
         <small v-if="mode === 'register'">
           At least 3 characters.
         </small>
+        <small v-else class="invisible-helper-text">
+          Username
+        </small>
       </label>
 
       <label>
@@ -106,25 +109,38 @@ watch(
 
           <button
             type="button"
+            class="icon-button"
+            :aria-label="isPasswordVisible ? 'Hide password' : 'Show password'"
+            :title="isPasswordVisible ? 'Hide password' : 'Show password'"
             @click="isPasswordVisible = !isPasswordVisible"
           >
-            {{ isPasswordVisible ? "Hide" : "Show" }}
+            <EyeOff v-if="isPasswordVisible" :size="18" aria-hidden="true" />
+            <Eye v-else :size="18" aria-hidden="true" />
           </button>
         </div>
         <small v-if="mode === 'register'">
           At least 8 characters.
         </small>
+        <small v-else class="invisible-helper-text">
+          Password
+        </small>
       </label>
 
-      <p v-if="errorMessage" class="error">
-        {{ errorMessage }}
-      </p>
+      <div class="form-message-area" aria-live="polite">
+        <p v-if="errorMessage" class="error">
+          {{ errorMessage }}
+        </p>
 
-      <p v-if="noticeMessage" class="success-message">
-        {{ noticeMessage }}
-      </p>
+        <p v-else-if="noticeMessage" class="success-message">
+          {{ noticeMessage }}
+        </p>
+      </div>
 
-      <button type="submit" :disabled="!canSubmit || isSubmitting">
+      <button
+        type="submit"
+        class="auth-submit-button"
+        :disabled="!canSubmit || isSubmitting"
+      >
         {{ isSubmitting ? "Submitting..." : mode === "login" ? "Login" : "Register" }}
       </button>
     </form>
