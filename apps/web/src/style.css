@@ -116,6 +116,8 @@ main {
 
 .app-header {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: 18px;
   margin-bottom: 28px;
 }
@@ -315,7 +317,9 @@ p {
 
 .credential-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: end;
+  align-items: center;
   gap: 8px;
   white-space: nowrap;
 }
@@ -331,6 +335,10 @@ p {
   display: grid;
   gap: 10px;
   margin: 0;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
 }
 
 .credential-detail dl > div {
@@ -402,6 +410,14 @@ p {
     padding: 28px 0;
   }
 
+  .app-header {
+    grid-template-columns: 1fr;
+  }
+
+  .app-nav {
+    justify-content: start;
+  }
+
   .status-panel dl > div {
     grid-template-columns: 1fr;
     gap: 4px;
@@ -414,6 +430,12 @@ p {
 
   .credential-actions {
     justify-content: start;
+    white-space: normal;
+  }
+
+  .credential-actions > button,
+  .credential-actions > .button-link {
+    justify-content: center;
   }
 
   .credential-detail dl > div {

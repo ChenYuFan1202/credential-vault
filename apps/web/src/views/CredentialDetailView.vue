@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { apiUrl } from "../api/client";
 import { getApiErrorMessage, getUnknownErrorMessage } from "../api/errors";
 import CredentialDetail from "../components/CredentialDetail.vue";
 
@@ -78,12 +79,9 @@ async function loadCredentialDetail(): Promise<void> {
   updateCredentialErrorMessage.value = "";
 
   try {
-    const response = await fetch(
-      `http://localhost:3000/credentials/${credentialId.value}`,
-      {
-        credentials: "include",
-      },
-    );
+    const response = await fetch(apiUrl(`/credentials/${credentialId.value}`), {
+      credentials: "include",
+    });
 
     if (!response.ok) {
       throw new Error(
@@ -180,23 +178,20 @@ async function updateCredential(): Promise<void> {
   updateCredentialErrorMessage.value = "";
 
   try {
-    const response = await fetch(
-      `http://localhost:3000/credentials/${credentialId.value}`,
-      {
-        method: "PATCH",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          platform: editCredential.value.platform,
-          username: editCredential.value.username,
-          password: editCredential.value.password,
-          notes: editCredential.value.notes || null,
-          customFields: getSubmittedCustomFields(),
-        }),
+    const response = await fetch(apiUrl(`/credentials/${credentialId.value}`), {
+      method: "PATCH",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({
+        platform: editCredential.value.platform,
+        username: editCredential.value.username,
+        password: editCredential.value.password,
+        notes: editCredential.value.notes || null,
+        customFields: getSubmittedCustomFields(),
+      }),
+    });
 
     if (!response.ok) {
       throw new Error(

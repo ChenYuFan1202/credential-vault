@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { apiUrl } from "../api/client";
 import { getApiErrorMessage, getUnknownErrorMessage } from "../api/errors";
 import CredentialList from "../components/CredentialList.vue";
 
@@ -55,7 +56,7 @@ async function loadCredentials(): Promise<void> {
   credentialErrorMessage.value = "";
 
   try {
-    const response = await fetch("http://localhost:3000/credentials", {
+    const response = await fetch(apiUrl("/credentials"), {
       credentials: "include",
     });
 
@@ -80,7 +81,7 @@ async function deleteCredential(id: string): Promise<void> {
   deleteCredentialErrorMessage.value = "";
 
   try {
-    const response = await fetch(`http://localhost:3000/credentials/${id}`, {
+    const response = await fetch(apiUrl(`/credentials/${id}`), {
       method: "DELETE",
       credentials: "include",
     });
@@ -106,7 +107,7 @@ async function exportCredentials(): Promise<void> {
   exportCredentialErrorMessage.value = "";
 
   try {
-    const response = await fetch("http://localhost:3000/credentials/export.txt", {
+    const response = await fetch(apiUrl("/credentials/export.txt"), {
       credentials: "include",
     });
 

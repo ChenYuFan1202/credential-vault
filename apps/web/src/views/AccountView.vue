@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { apiUrl } from "../api/client";
 import { getApiErrorMessage, getUnknownErrorMessage } from "../api/errors";
 import PasswordChangeForm from "../components/PasswordChangeForm.vue";
 
@@ -34,7 +35,7 @@ async function changePassword(
   changePasswordErrorMessage.value = "";
 
   try {
-    const response = await fetch("http://localhost:3000/auth/password", {
+    const response = await fetch(apiUrl("/auth/password"), {
       method: "PATCH",
       credentials: "include",
       headers: {

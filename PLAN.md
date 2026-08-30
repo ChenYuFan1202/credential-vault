@@ -100,6 +100,17 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 - Use English for code, branch names, commit messages, file names, and API names.
 - Use Traditional Chinese for explanations and learning notes.
 
+### Deployment Notes
+
+- Keep real `.env` files out of Git.
+- Set `CREDENTIAL_ENCRYPTION_KEY` in the backend runtime environment before using real data.
+- Set `VITE_API_BASE_URL` in the frontend runtime/build environment when the API is not `http://localhost:3000`.
+- Confirm cookie `Secure` behavior before deploying behind HTTPS.
+- Restrict CORS origin to the deployed frontend origin before public deployment.
+- Configure SPA fallback to `index.html` when deploying the Vue app with `createWebHistory()`.
+- Use HTTPS for deployed or phone-accessible environments so cookies, clipboard behavior, and browser security features work correctly.
+- Treat exported TXT backups as plaintext files that the user must store carefully.
+
 ## Milestones
 
 ### Milestone 0: Repository Setup

@@ -181,7 +181,7 @@ function confirmExportCredentials(): void {
     <ConfirmDialog
       v-if="isExportConfirmOpen"
       title="Export Credentials"
-      message="Export decrypted credentials as a TXT file?"
+      message="Export decrypted credentials as a TXT file. Anyone with this file can read the contents, so store it carefully."
       confirm-label="Export TXT"
       confirming-label="Exporting..."
       confirm-variant="primary"

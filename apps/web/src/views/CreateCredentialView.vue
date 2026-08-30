@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { apiUrl } from "../api/client";
 import { getApiErrorMessage, getUnknownErrorMessage } from "../api/errors";
 import CredentialCreateForm from "../components/CredentialCreateForm.vue";
 
@@ -30,7 +31,7 @@ async function createCredential(
   createCredentialErrorMessage.value = "";
 
   try {
-    const response = await fetch("http://localhost:3000/credentials", {
+    const response = await fetch(apiUrl("/credentials"), {
       method: "POST",
       credentials: "include",
       headers: {

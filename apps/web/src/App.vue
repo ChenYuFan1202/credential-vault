@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { RouterLink, RouterView, useRoute, useRouter } from "vue-router";
+import { apiUrl } from "./api/client";
 import { getApiErrorMessage, getUnknownErrorMessage } from "./api/errors";
 
 type CurrentUser = {
@@ -74,7 +75,7 @@ async function loadCurrentUser(): Promise<void> {
   authErrorMessage.value = "";
 
   try {
-    const response = await fetch("http://localhost:3000/auth/me", {
+    const response = await fetch(apiUrl("/auth/me"), {
       credentials: "include",
     });
 
@@ -106,7 +107,7 @@ async function login(input: AuthFormInput): Promise<void> {
   authNoticeMessage.value = "";
 
   try {
-    const response = await fetch("http://localhost:3000/auth/login", {
+    const response = await fetch(apiUrl("/auth/login"), {
       method: "POST",
       credentials: "include",
       headers: {
@@ -140,7 +141,7 @@ async function register(input: AuthFormInput): Promise<void> {
   authNoticeMessage.value = "";
 
   try {
-    const response = await fetch("http://localhost:3000/auth/register", {
+    const response = await fetch(apiUrl("/auth/register"), {
       method: "POST",
       credentials: "include",
       headers: {
@@ -171,7 +172,7 @@ async function logout(): Promise<void> {
   logoutErrorMessage.value = "";
 
   try {
-    const response = await fetch("http://localhost:3000/auth/logout", {
+    const response = await fetch(apiUrl("/auth/logout"), {
       method: "POST",
       credentials: "include",
     });
