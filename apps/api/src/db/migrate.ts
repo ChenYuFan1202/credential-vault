@@ -1,12 +1,9 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
+import { getDatabaseConnectionUrl } from "./url";
 
-const databaseUrl = Bun.env.DATABASE_URL;
-
-if (databaseUrl === undefined) {
-  throw new Error("DATABASE_URL is required.");
-}
+const databaseUrl = getDatabaseConnectionUrl();
 
 const migrationClient = postgres(databaseUrl, {
   max: 1,

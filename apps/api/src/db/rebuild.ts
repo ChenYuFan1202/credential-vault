@@ -1,14 +1,11 @@
 import postgres from "postgres";
-
-const databaseUrl = Bun.env.DATABASE_URL;
+import { getDatabaseUrl } from "./url";
 
 if (Bun.env.NODE_ENV === "production") {
   throw new Error("Refusing to rebuild the database in production.");
 }
 
-if (databaseUrl === undefined) {
-  throw new Error("DATABASE_URL is required.");
-}
+const databaseUrl = getDatabaseUrl();
 
 const client = postgres(databaseUrl, {
   max: 1,
