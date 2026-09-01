@@ -102,6 +102,7 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 
 ### Deployment Notes
 
+- Deploy the API from the repository root with a Heroku `Procfile` and a Bun buildpack.
 - Keep real `.env` files out of Git.
 - Set `CREDENTIAL_ENCRYPTION_KEY` in the backend runtime environment before using real data.
 - Set `VITE_API_BASE_URL` in the frontend runtime/build environment when the API is not `http://localhost:3000`.

@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "cd apps/api && bun install --frozen-lockfile",
+    "start": "cd apps/api && bun run start",
+    "db:migrate": "cd apps/api && bun run db:migrate"
+  }
+}

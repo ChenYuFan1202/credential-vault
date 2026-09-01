@@ -1,4 +1,4 @@
-import { db } from "./client";
+import { db, queryClient } from "./client";
 import {
   credentialCustomFields,
   credentials,
@@ -10,9 +10,13 @@ if (Bun.env.NODE_ENV === "production") {
   throw new Error("Refusing to delete database table data in production.");
 }
 
-await db.delete(credentialCustomFields);
-await db.delete(credentials);
-await db.delete(sessions);
-await db.delete(users);
+try {
+  await db.delete(credentialCustomFields);
+  await db.delete(credentials);
+  await db.delete(sessions);
+  await db.delete(users);
 
-console.log("Database table data deleted.");
+  console.log("Database table data deleted.");
+} finally {
+  await queryClient.end();
+}

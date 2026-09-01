@@ -15,6 +15,7 @@ const client = postgres(databaseUrl, {
 });
 
 await client`drop schema if exists public cascade`;
+await client`drop schema if exists drizzle cascade`;
 await client`create schema public`;
 await client.end();
 
