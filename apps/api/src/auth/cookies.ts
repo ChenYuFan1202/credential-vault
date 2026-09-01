@@ -1,15 +1,22 @@
 const sessionCookieName = "credential_vault_session";
-const secureAttribute = Bun.env.NODE_ENV === "production" ? "; Secure" : "";
+
+function getCookieSecurityAttributes(): string {
+  if (Bun.env.NODE_ENV === "production") {
+    return "; Secure; SameSite=None";
+  }
+
+  return "; SameSite=Lax";
+}
 
 export function createSessionCookie(
   sessionToken: string,
   expiresAt: string,
 ): string {
-  return `${sessionCookieName}=${sessionToken}; HttpOnly${secureAttribute}; SameSite=Lax; Path=/; Expires=${new Date(expiresAt).toUTCString()}`;
+  return `${sessionCookieName}=${sessionToken}; HttpOnly${getCookieSecurityAttributes()}; Path=/; Expires=${new Date(expiresAt).toUTCString()}`;
 }
 
 export function createExpiredSessionCookie(): string {
-  return `${sessionCookieName}=; HttpOnly${secureAttribute}; SameSite=Lax; Path=/; Max-Age=0`;
+  return `${sessionCookieName}=; HttpOnly${getCookieSecurityAttributes()}; Path=/; Max-Age=0`;
 }
 
 export function getSessionTokenFromCookieHeader(
