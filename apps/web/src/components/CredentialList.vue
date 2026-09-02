@@ -80,6 +80,12 @@ function confirmExportCredentials(): void {
   isExportConfirmOpen.value = false;
   emit("export");
 }
+
+function updateSearchQuery(event: Event): void {
+  const input = event.target as HTMLInputElement;
+
+  searchQuery.value = input.value.trim();
+}
 </script>
 
 <template>
@@ -128,11 +134,12 @@ function confirmExportCredentials(): void {
       <label class="search-field">
         <span>Search Platform</span>
         <input
-          v-model.trim="searchQuery"
+          :value="searchQuery"
           type="text"
           inputmode="search"
           autocomplete="off"
           placeholder="GitHub"
+          @input="updateSearchQuery"
         />
       </label>
 
