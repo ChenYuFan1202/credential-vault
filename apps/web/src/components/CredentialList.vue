@@ -128,8 +128,9 @@ function confirmExportCredentials(): void {
       <label class="search-field">
         <span>Search Platform</span>
         <input
-          v-model="searchQuery"
-          type="search"
+          v-model.trim="searchQuery"
+          type="text"
+          inputmode="search"
           autocomplete="off"
           placeholder="GitHub"
         />
