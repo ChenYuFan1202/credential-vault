@@ -1,2 +1,2 @@
-release: cd apps/api && bun run db:migrate
-web: cd apps/api && bun run start
+release: bun run heroku:release
+web: bun run heroku:start

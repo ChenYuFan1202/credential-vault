@@ -1,8 +1,11 @@
 {
   "private": true,
   "scripts": {
-    "build": "cd apps/api && bun install --frozen-lockfile",
-    "start": "cd apps/api && bun run start",
+    "build": "bun run heroku:build",
+    "start": "bun run heroku:start",
+    "heroku:build": "if [ \"$HEROKU_APP_TYPE\" = \"web\" ]; then cd apps/web && bun install --frozen-lockfile && bun run build; else cd apps/api && bun install --frozen-lockfile; fi",
+    "heroku:release": "if [ \"$HEROKU_APP_TYPE\" = \"web\" ]; then echo \"No release step for web app.\"; else cd apps/api && bun run db:migrate; fi",
+    "heroku:start": "if [ \"$HEROKU_APP_TYPE\" = \"web\" ]; then cd apps/web && bun run start; else cd apps/api && bun run start; fi",
     "db:migrate": "cd apps/api && bun run db:migrate"
   }
 }

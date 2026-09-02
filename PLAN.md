@@ -102,7 +102,10 @@ Build a personal full-stack credential vault while learning TypeScript, Vue.js, 
 
 ### Deployment Notes
 
+- Deploy the API and web frontend as separate Heroku apps from the same repository.
+- Set `HEROKU_APP_TYPE=api` for the API app and `HEROKU_APP_TYPE=web` for the web app.
 - Deploy the API from the repository root with a Heroku `Procfile` and a Bun buildpack.
+- Deploy the Vue frontend from the repository root with the same Heroku `Procfile` and a Bun buildpack.
 - Keep real `.env` files out of Git.
 - Set `CREDENTIAL_ENCRYPTION_KEY` in the backend runtime environment before using real data.
 - Set `VITE_API_BASE_URL` in the frontend runtime/build environment when the API is not `http://localhost:3000`.
