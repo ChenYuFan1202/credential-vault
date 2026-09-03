@@ -35,11 +35,12 @@ function getFilePath(pathname: string): string | null {
   return filePath;
 }
 
-function responseForFile(filePath: string): Response {
+async function responseForFile(filePath: string): Promise<Response> {
   const contentType =
     contentTypes[extname(filePath)] ?? "application/octet-stream";
+  const file = Bun.file(filePath);
 
-  return new Response(Bun.file(filePath), {
+  return new Response(await file.arrayBuffer(), {
     headers: {
       "Content-Type": contentType,
     },
@@ -47,6 +48,7 @@ function responseForFile(filePath: string): Response {
 }
 
 Bun.serve({
+  hostname: "0.0.0.0",
   port,
   async fetch(request) {
     const url = new URL(request.url);
@@ -61,10 +63,10 @@ Bun.serve({
     const file = Bun.file(filePath);
 
     if (await file.exists()) {
-      return responseForFile(filePath);
+      return await responseForFile(filePath);
     }
 
-    return responseForFile(join(distDir, "index.html"));
+    return await responseForFile(join(distDir, "index.html"));
   },
 });
 
