@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 
 const port = Number(Bun.env.PORT ?? 5173);
@@ -38,9 +39,9 @@ function getFilePath(pathname: string): string | null {
 async function responseForFile(filePath: string): Promise<Response> {
   const contentType =
     contentTypes[extname(filePath)] ?? "application/octet-stream";
-  const file = Bun.file(filePath);
+  const file = await readFile(filePath);
 
-  return new Response(await file.arrayBuffer(), {
+  return new Response(file, {
     headers: {
       "Content-Type": contentType,
     },
